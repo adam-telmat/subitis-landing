@@ -29,7 +29,19 @@ const ok = (condition, message) => {
   if (!condition) echecs += 1;
 };
 
-const serveur = createServer(async (_req, res) => {
+const serveur = createServer(async (req, res) => {
+  // Les photographies vivent a cote de index.html : le serveur de controle
+  // doit les servir, sinon les images apparaissent cassees dans les mesures.
+  if (req.url && req.url.startsWith('/photos/')) {
+    try {
+      const bin = await readFile(join(RACINE, decodeURIComponent(req.url.slice(1))));
+      res.writeHead(200, { 'Content-Type': 'image/jpeg' });
+      return res.end(bin);
+    } catch {
+      res.writeHead(404);
+      return res.end();
+    }
+  }
   const html = await readFile(join(RACINE, 'index.html'));
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
   res.end(html);

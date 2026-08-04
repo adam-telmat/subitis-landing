@@ -432,12 +432,25 @@
         display: flex;
         align-items: flex-end;
       }
+      /* La photographie porte la chaleur, le dessin porte le sens.
+         Les deux se superposent : ni l'un ni l'autre ne suffit seul. */
+      .scene-photo {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+        filter: saturate(0.72) contrast(1.06) brightness(0.92);
+      }
       .scene-fond {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
         z-index: 0;
+        /* Le dessin se fond dans la photo au lieu de la masquer. */
+        opacity: 0.62;
       }
       .scene::after {
         content: '';
@@ -445,7 +458,7 @@
         inset: auto 0 0 0;
         height: 62%;
         z-index: 0;
-        background: linear-gradient(to top, #17110f 32%, rgba(23, 17, 15, 0.82) 62%, rgba(23, 17, 15, 0));
+        background: linear-gradient(to top, #17110f 30%, rgba(23, 17, 15, 0.92) 58%, rgba(23, 17, 15, 0.25) 88%, rgba(23, 17, 15, 0));
         pointer-events: none;
       }
       .scene-contenu {
@@ -847,6 +860,38 @@
         color: var(--ink-500);
       }
 
+      /* Le triptyque des métiers. Trois hauteurs différentes : trois images
+         de même taille alignées seraient exactement le motif que le reste de
+         la page évite. */
+      .metiers-section {
+        background: var(--muted);
+        border-block: 1px solid var(--line);
+      }
+      .metiers {
+        margin-top: 2.25rem;
+        display: grid;
+        gap: 1rem;
+      }
+      .metier {
+        margin: 0;
+      }
+      .metier img {
+        width: 100%;
+        height: 260px;
+        object-fit: cover;
+        border-radius: var(--core);
+        display: block;
+        filter: saturate(0.82) contrast(1.03);
+        box-shadow: var(--ombre);
+      }
+      .metier figcaption {
+        margin-top: 0.7rem;
+        font-size: 0.8125rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink-500);
+      }
+
       /* -------------------------------- Formulaires -------------------------------- */
       form {
         display: grid;
@@ -1083,6 +1128,20 @@
           grid-column: 3;
           grid-row: 1;
           margin-top: 0;
+        }
+        .metiers {
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 1.25rem;
+          align-items: end;
+        }
+        .metier:nth-child(1) img {
+          height: 300px;
+        }
+        .metier:nth-child(2) img {
+          height: 380px;
+        }
+        .metier:nth-child(3) img {
+          height: 330px;
         }
         .prix-grille,
         .constats {
@@ -1329,8 +1388,16 @@
           </div>
 
           <figure class="scene">
+            <img
+              class="scene-photo"
+              src="photos/barbier.jpg"
+              width="1400"
+              height="1750"
+              alt="Un barbier taille une nuque à la tondeuse, en gros plan sur le geste."
+              loading="eager"
+              decoding="async"
+            />
             <svg class="scene-fond" viewBox="0 0 640 520" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-              <rect width="640" height="520" fill="#17110F" />
               <!-- Lumiere de studio, en haut a gauche. -->
               <ellipse cx="180" cy="110" rx="330" ry="250" fill="url(#gHalo)" />
               <!-- Nappes organiques floutees : de la matiere, pas des aplats. -->
@@ -1581,6 +1648,54 @@
         </div>
       </section>
 
+      <!-- =========================== LES MÉTIERS =========================== -->
+      <section class="metiers-section">
+        <div class="contenant">
+          <span class="eyebrow">Qui publie sur Subitis</span>
+          <h2 class="titre">Des indépendants qui se déplacent, à Marseille.</h2>
+          <p class="sous-titre">
+            Barbiers, coiffeurs, esthéticiennes, prothésistes ongulaires, maquilleurs. Sans local
+            commercial, et seuls à décider de leurs tarifs.
+          </p>
+
+          <div class="metiers">
+            <figure class="metier reveal">
+              <img
+                src="photos/soin-visage.jpg"
+                width="1400"
+                height="933"
+                alt="Un soin du visage en cours, masque appliqué au pinceau, lumière chaude."
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption>Soins et esthétique</figcaption>
+            </figure>
+            <figure class="metier reveal">
+              <img
+                src="photos/coiffure.jpg"
+                width="1400"
+                height="933"
+                alt="Une coupe en cours, peigne et ciseaux tenus à deux mains."
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption>Coiffure</figcaption>
+            </figure>
+            <figure class="metier reveal">
+              <img
+                src="photos/barbier.jpg"
+                width="1400"
+                height="1750"
+                alt="Un barbier taille une nuque à la tondeuse."
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption>Barbier</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
       <!-- ============================= CANDIDATURE ============================= -->
       <section id="candidature" class="bande">
         <div class="contenant form-grille">
@@ -1732,7 +1847,10 @@
             Pilote Marseille et sa métropole. Coiffure, barbier, onglerie, maquillage, soins.
           </p>
         </div>
-        <p>Groupe&nbsp;24 · 2026</p>
+        <p>
+          Groupe&nbsp;24 · 2026<br />
+          <span style="opacity: 0.72">Photographies&nbsp;: Pexels, licence libre.</span>
+        </p>
       </div>
     </footer>
 
