@@ -14,6 +14,13 @@ Seule `marseille.html` a besoin du dossier `photos/` ; `index.html` n'a **aucune
 
 ---
 
+> [!IMPORTANT]
+> **La page est en ligne, mais elle ne collecte encore rien.** Les deux valeurs ci-dessous sont
+> toujours des marqueurs : aucune mesure ne remonte dans GA4, et le formulaire d'essai avertit
+> le visiteur au lieu d'envoyer sa demande. C'est le comportement voulu — la page refuse de
+> simuler un succès — mais tant que `ENDPOINT` est vide, **une demande d'essai est perdue**.
+> À renseigner puis republier (un `git push` suffit) avant de diffuser le lien.
+
 ## Les deux valeurs à renseigner avant de publier
 
 Le fichier est complet, sauf deux valeurs que je ne peux pas inventer. Elles sont marquées dans
@@ -71,14 +78,28 @@ comparatif (« l'abonnement en coûte 19 »).
 
 ---
 
-## Publier
+## En ligne
+
+**https://subitis-landing.vercel.app**
+
+Projet Vercel `subitis-landing` (compte `adam-telmat`), relié à la branche `main` de
+`github.com/adam-telmat/subitis-landing`. **Chaque push sur `main` redéploie automatiquement** —
+il n'y a rien à lancer à la main.
+
+Ce qui est servi publiquement se limite à `index.html`, par le `.vercelignore` : il exclut tout
+par défaut et ne réintègre que la landing. Sont donc hors ligne, et c'est voulu — les documents
+internes du hackathon, les captures et le PDF de relecture, les scripts de vérification, et
+`marseille.html` dont le positionnement contredirait celui de la page publiée. Pour remettre
+cette dernière en ligne, ajouter `!marseille.html` au `.vercelignore`.
+
+Après chaque déploiement, **tester le lien en navigation privée** : un lien qui ne marche que
+sur la machine qui l'a créé vaut zéro. Contrôle rapide des exclusions, sans session Vercel :
 
 ```bash
-npx vercel --prod          # ou : Settings → Pages → Source main / racine sur GitHub
+node -e "for (const c of ['/','/marseille.html','/README.md','/plan-landing/']) fetch('https://subitis-landing.vercel.app'+c).then(r=>console.log(r.status,c))"
 ```
 
-**Tester le lien en navigation privée** avant de le diffuser. Un lien qui ne marche que sur la
-machine qui l'a créé vaut zéro.
+La racine doit répondre `200`, tout le reste `404`.
 
 ## Vérifier
 
