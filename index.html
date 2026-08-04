@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
-    <title>Subitis — La réservation en ligne des professionnels de la beauté. Par abonnement, sans commission.</title>
+    <title>Subitis : la réservation en ligne des professionnels de la beauté. Par abonnement, sans commission.</title>
     <meta
       name="description"
       content="Subitis centralise les rendez-vous des professionnels de la beauté : réservation en ligne 24 h/24, page référencée à votre nom, confirmations et rappels automatiques. Par abonnement, sans commission, à vos prix."
@@ -1760,19 +1760,85 @@
         transform: none;
       }
 
-      /* ---------------------------------- Pied ---------------------------------- */
+      /* ---------------------------------- Pied ----------------------------------
+         Le pied de page n'est pas une signature : c'est la dernière chance de
+         donner une direction à quelqu'un qui a tout lu et n'a pas cliqué. Il
+         porte donc un appel, un plan du site, et la mention des métiers
+         couverts — celle qui dit à un salon qu'il est concerné lui aussi. */
       footer {
         background: var(--muted);
         border-top: 1px solid var(--line);
-        padding-block: 2.25rem;
+        padding-block: 3.5rem 1.75rem;
         position: relative;
         z-index: 2;
       }
+      /* Sur mobile, les deux listes se partagent la largeur : empilées, elles
+         font douze lignes de 44 px, soit un écran entier de défilement pour
+         finir la page. */
       .pied {
         display: grid;
-        gap: 0.9rem;
-        font-size: 0.875rem;
+        grid-template-columns: 1fr 1fr;
+        gap: 2.25rem 1.25rem;
+      }
+      .pied-marque {
+        grid-column: 1 / -1;
+      }
+      .pied-marque {
+        display: grid;
+        justify-items: start;
+        gap: 1rem;
+        max-width: 34ch;
+      }
+      .pied-marque p {
+        font-size: 0.9375rem;
         color: var(--ink-500);
+      }
+      .pied-colonne h3 {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--ink-500);
+        margin-bottom: 0.5rem;
+      }
+      .pied-liens {
+        list-style: none;
+        display: grid;
+      }
+      /* 44 px par ligne : au pouce, une liste de liens serrés est une liste de
+         liens qu'on rate. La hauteur fait aussi le rythme vertical. */
+      .pied-liens a,
+      .pied-liens span {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+        font-size: 0.9375rem;
+        color: var(--ink-700);
+        text-decoration: none;
+        transition: color var(--vite) var(--ease);
+      }
+      .pied-liens a:hover {
+        color: var(--rose-700);
+      }
+      .pied-liens span {
+        color: var(--ink-500);
+      }
+      .pied-bas {
+        margin-top: 2.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--line);
+        display: grid;
+        gap: 0.9rem;
+        font-size: 0.8125rem;
+        color: var(--ink-500);
+      }
+      .pied-bas p {
+        max-width: 64ch;
+      }
+      .pied-legal {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem 1.25rem;
       }
 
       /* ------------------------------- Révélation -------------------------------
@@ -1843,8 +1909,17 @@
           gap: 1.75rem;
         }
         .pied {
+          grid-template-columns: 1.5fr 1fr 1fr;
+          gap: 3rem;
+          align-items: start;
+        }
+        .pied-marque {
+          grid-column: auto;
+        }
+        .pied-bas {
           grid-template-columns: 1fr auto;
-          align-items: end;
+          align-items: baseline;
+          gap: 1.5rem 2.5rem;
         }
         .collant {
           display: none;
@@ -2106,6 +2181,18 @@
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
+        .pied {
+          grid-template-columns: 1.5fr 1fr 1fr !important;
+          gap: 2rem !important;
+        }
+        .pied-liens a,
+        .pied-liens span {
+          min-height: 0 !important;
+          padding-block: 0.1rem;
+        }
+        .pied-marque .bouton {
+          display: none !important;
+        }
         .etape,
         .refus div,
         .confiance div,
@@ -2226,8 +2313,8 @@
             <p class="chapeau">
               Subitis vous donne une page de réservation professionnelle, référencée, à votre nom.
               Réservation 24&nbsp;h/24, confirmation directement dans votre agenda, rappels et
-              annulations gérés en ligne. Par abonnement — jamais de commission sur ce que vous
-              encaissez.
+              annulations gérés en ligne. Par abonnement, et jamais de commission sur ce que
+              vous encaissez.
             </p>
 
             <div class="appel">
@@ -2352,7 +2439,7 @@
           <h2 class="titre">Un créneau libre ne se rattrape pas. Combien, chez vous&nbsp;?</h2>
           <p class="sous-titre">
             Il n'y a pas de chiffre universel&nbsp;: un barbier et une prothésiste ongulaire ne
-            perdent pas la même chose. Réglez les deux curseurs — le calcul est le vôtre.
+            perdent pas la même chose. Réglez les deux curseurs : le calcul est le vôtre.
           </p>
 
           <div class="coque calc reveal">
@@ -2531,7 +2618,7 @@
               <h3>Vos clients réservent quand ça les arrange.</h3>
               <p>
                 Le soir, le dimanche, pendant que vous avez les mains prises. Ils voient vos vrais
-                créneaux, choisissent, et la réservation arrive confirmée dans votre agenda — sans
+                créneaux, choisissent, et la réservation arrive confirmée dans votre agenda, sans
                 un appel à décrocher.
               </p>
             </article>
@@ -2577,7 +2664,7 @@
               <div class="rang nb">02</div>
               <div>
                 <h3>Vous partagez votre lien.</h3>
-                <p>En bio Instagram, sur WhatsApp, sur votre fiche Google. C'est votre page, à votre nom — vos clients y réservent 24&nbsp;h/24.</p>
+                <p>En bio Instagram, sur WhatsApp, sur votre fiche Google. C'est votre page, à votre nom, et vos clients y réservent 24&nbsp;h/24.</p>
               </div>
             </div>
             <div class="etape reveal">
@@ -2602,13 +2689,13 @@
           <h2 class="titre">Une commission grandit avec vous. Un abonnement, non.</h2>
           <p class="sous-titre">
             Sur les places de marché, plus vous travaillez, plus vous payez. Chez Subitis, le prix
-            est fixe — et vous le connaissez d'avance.
+            est fixe, et vous le connaissez d'avance.
           </p>
 
           <!-- Les trois chiffres du marché. Source : étude Subitis (J1),
                données sectorielles publiques. -->
           <div class="marche cascade">
-            <div><span class="marche-chiffre nb">27&nbsp;000</span><span class="marche-libelle">coiffeurs à domicile en France — un métier qui a presque doublé</span></div>
+            <div><span class="marche-chiffre nb">27&nbsp;000</span><span class="marche-libelle">coiffeurs à domicile en France, un métier qui a presque doublé</span></div>
             <div><span class="marche-chiffre nb">65&nbsp;000</span><span class="marche-libelle">établissements d'esthétique, en hausse de 8&nbsp;% en un an</span></div>
             <div><span class="marche-chiffre nb">16&nbsp;% → 25&nbsp;%</span><span class="marche-libelle">la commission du leader du domicile, en six ans</span></div>
           </div>
@@ -2624,7 +2711,7 @@
             <!-- ÉCRAN E — les tarifs, fixés par le professionnel. La fourchette
                  25–80 € couvre les métiers de la cible sans en nommer un seul. -->
             <div class="scene-tel">
-              <figure class="telephone" role="img" aria-label="Écran des réglages de l'application : la liste de vos prestations et les prix que vous avez fixés — 25, 45 et 80 euros — modifiables à tout moment.">
+              <figure class="telephone" role="img" aria-label="Écran des réglages de l'application : la liste de vos prestations et les prix que vous avez fixés (25, 45 et 80 euros), modifiables à tout moment.">
                 <div class="tel-corps">
                   <span class="tel-btn-g" aria-hidden="true"></span>
                   <span class="tel-btn-d" aria-hidden="true"></span>
@@ -2707,8 +2794,8 @@
           </div>
 
           <p class="source">
-            Exemple au taux de 25&nbsp;% relevé chez le leader de la beauté à domicile — il était de
-            16&nbsp;% HT en 2018. Aucun nom sur cette page&nbsp;: ce qu'on discute, c'est le modèle,
+            Exemple au taux de 25&nbsp;% relevé chez le leader de la beauté à domicile ; il était
+            de 16&nbsp;% HT en 2018. Aucun nom sur cette page&nbsp;: ce qu'on discute, c'est le modèle,
             pas une enseigne. Chiffres du marché&nbsp;: étude Subitis, données sectorielles publiques.
           </p>
         </div>
@@ -2739,8 +2826,8 @@
                   <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Avis clients sur votre page</li>
                 </ul>
                 <p class="offre-ancre">
-                  La première réservation du mois paie l'abonnement — même une coupe à
-                  25&nbsp;€ — et toutes les suivantes sont pour vous.
+                  La première réservation du mois paie l'abonnement, même une coupe à
+                  25&nbsp;€, et toutes les suivantes sont pour vous.
                 </p>
                 <a class="bouton" href="#essai">
                   Tester Subitis
@@ -2759,7 +2846,7 @@
                 <div class="prix-chiffre nb">39&nbsp;€ <small>/ mois</small></div>
                 <p>
                   Tout Classique, plus la visibilité renforcée&nbsp;: profil mis en avant,
-                  statistiques de votre page — visites, clics, avis — et partage de profil
+                  statistiques de votre page (visites, clics, avis) et partage de profil
                   en un geste.
                 </p>
               </div>
@@ -2796,7 +2883,7 @@
           <div class="confiance">
             <div>
               <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
-              <p><strong>Vous testez sur votre vraie activité avant de payer.</strong> Vos prestations, vos prix, vos clients — pas une démo.</p>
+              <p><strong>Vous testez sur votre vraie activité avant de payer.</strong> Vos prestations, vos prix, vos clients. Pas une démo.</p>
             </div>
             <div>
               <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
@@ -2822,7 +2909,7 @@
             <details>
               <summary>«&nbsp;Les plateformes prennent une commission.&nbsp;»</summary>
               <p>
-                Pas ici. Le prix payé par votre client vous revient en entier — c'est le modèle,
+                Pas ici. Le prix payé par votre client vous revient en entier : c'est le modèle,
                 pas une promotion de lancement. Sur une coupe à 25&nbsp;€, il vous reste
                 25&nbsp;€.
               </p>
@@ -2846,7 +2933,7 @@
             <details>
               <summary>«&nbsp;Je n'ai pas le temps d'apprendre un nouvel outil.&nbsp;»</summary>
               <p>
-                Il n'y a rien à apprendre&nbsp;: vos prestations, vos prix, vos horaires — et
+                Il n'y a rien à apprendre&nbsp;: vos prestations, vos prix, vos horaires, et
                 votre page existe. La plupart des professionnels la publient le jour même, et on
                 peut la configurer avec vous.
               </p>
@@ -2982,18 +3069,69 @@
     </main>
 
     <footer>
-      <div class="contenant pied">
-        <div>
-          <span class="logo-marque" role="img" aria-label="Subitis"></span>
-          <p style="margin-top: 0.45rem">
-            La réservation en ligne des professionnels de la beauté. Barbier, coiffure,
-            esthétique, onglerie, maquillage, bien-être.
-          </p>
+      <div class="contenant">
+        <div class="pied">
+          <div class="pied-marque">
+            <span class="logo-marque" role="img" aria-label="Subitis"></span>
+            <p>
+              La réservation en ligne des professionnels de la beauté. Un abonnement fixe,
+              aucune commission, et vos prix qui restent les vôtres.
+            </p>
+            <a class="bouton bouton-clair" href="#essai">
+              Tester Subitis
+              <i aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <path d="M4.5 11.5L11.5 4.5M11.5 4.5H5.5M11.5 4.5V10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </i>
+            </a>
+          </div>
+
+          <nav class="pied-colonne" aria-label="Plan de la page">
+            <h3>La page</h3>
+            <ul class="pied-liens">
+              <li><a href="#calculateur">Le manque à gagner</a></li>
+              <li><a href="#reponses">Ce que fait l'application</a></li>
+              <li><a href="#fonctionnement">Comment ça marche</a></li>
+              <li><a href="#modele">Le modèle</a></li>
+              <li><a href="#offres">L'abonnement</a></li>
+              <li><a href="#confiance">Les questions</a></li>
+            </ul>
+          </nav>
+
+          <div class="pied-colonne">
+            <h3>Les métiers</h3>
+            <ul class="pied-liens">
+              <li><span>Barbier</span></li>
+              <li><span>Coiffure</span></li>
+              <li><span>Esthétique</span></li>
+              <li><span>Onglerie</span></li>
+              <li><span>Maquillage</span></li>
+              <li><span>Bien-être</span></li>
+            </ul>
+          </div>
         </div>
-        <p>
-          Subitis · 2026<br />
-          <span style="opacity: 0.72">Aucune photo de banque d'images&nbsp;: les écrans sont dessinés.</span>
-        </p>
+
+        <div class="pied-bas">
+          <p>
+            Vos coordonnées servent uniquement à répondre à votre demande d'essai. Elles ne sont
+            ni revendues, ni utilisées pour autre chose, et sont conservées 24&nbsp;mois au plus.
+            Vous pouvez demander leur suppression en répondant à notre message.
+          </p>
+          <!--
+            MENTIONS LÉGALES — À COMPLÉTER AVANT DIFFUSION LARGE
+            Un site français qui collecte des données personnelles doit publier
+            l'éditeur (raison sociale, forme juridique, SIRET, siège), le
+            directeur de publication et l'hébergeur (Vercel Inc., 340 S Lemon
+            Ave #4133, Walnut, CA 91789, USA).
+            Tant que ces informations manquent, rien n'est affiché ici : un lien
+            « Mentions légales » qui ne mène nulle part est pire que son absence.
+          -->
+          <div class="pied-legal">
+            <span>Subitis · 2026</span>
+            <span>Fait en France</span>
+          </div>
+        </div>
       </div>
     </footer>
 

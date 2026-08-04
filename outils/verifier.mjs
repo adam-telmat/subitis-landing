@@ -60,22 +60,33 @@ const navigateur = await chromium.launch();
 /*  1. Mise en page : aucun débordement horizontal                            */
 /*     Règle « Layout & Responsive », sévérité HAUTE                           */
 /* -------------------------------------------------------------------------- */
+/* Le parc réel, du plus petit téléphone encore en circulation au 27 pouces :
+   iPhone SE, Android compacts, iPhone récents, phablettes, tablettes en
+   portrait et en paysage, portables, et grands écrans de bureau. Chaque
+   largeur est éprouvée deux fois, en écran court et en écran haut, parce
+   qu'une section calée en `vh` ne se comporte pas pareil sur les deux. */
 console.log('\n— Mise en page');
-for (const largeur of [320, 360, 390, 412, 768, 1024, 1280, 1440]) {
-  const ctx = await navigateur.newContext({ viewport: { width: largeur, height: 900 } });
-  const page = await ctx.newPage();
-  await page.goto(URL_BASE, { waitUntil: 'load' });
-  await page.evaluate(() => document.fonts.ready);
-  const d = await page.evaluate(() => ({
-    s: document.documentElement.scrollWidth,
-    c: document.documentElement.clientWidth,
-    coupables: [...document.querySelectorAll('*')]
-      .filter((e) => e.getBoundingClientRect().right > document.documentElement.clientWidth + 1)
-      .slice(0, 3)
-      .map((e) => `${e.tagName}.${String(e.className).slice(0, 30)}`),
-  }));
-  ok(d.s <= d.c + 1, `${largeur} px : pas de défilement horizontal (${d.s} ≤ ${d.c}) ${d.coupables.join(' · ')}`);
-  await ctx.close();
+const LARGEURS = [320, 360, 375, 390, 412, 430, 480, 600, 768, 820, 912, 1024, 1180, 1280, 1366, 1440, 1600, 1920, 2560];
+for (const largeur of LARGEURS) {
+  for (const hauteur of largeur <= 480 ? [667, 932] : [720, 1080]) {
+    const ctx = await navigateur.newContext({ viewport: { width: largeur, height: hauteur } });
+    const page = await ctx.newPage();
+    await page.goto(URL_BASE, { waitUntil: 'load' });
+    await page.evaluate(() => document.fonts.ready);
+    const d = await page.evaluate(() => ({
+      s: document.documentElement.scrollWidth,
+      c: document.documentElement.clientWidth,
+      coupables: [...document.querySelectorAll('*')]
+        .filter((e) => e.getBoundingClientRect().right > document.documentElement.clientWidth + 1)
+        .slice(0, 3)
+        .map((e) => `${e.tagName}.${(e.getAttribute('class') || '').slice(0, 26)}`),
+    }));
+    ok(
+      d.s <= d.c + 1,
+      `${String(largeur).padStart(4)}×${String(hauteur).padEnd(4)} : pas de défilement horizontal (${d.s} ≤ ${d.c}) ${d.coupables.join(' · ')}`,
+    );
+    await ctx.close();
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -238,6 +249,8 @@ const PHRASES_INDEX = [
   'Pourquoi êtes-vous moins cher que Planity',
   // Le ton reste ferme sur le modèle, jamais sur le professionnel.
   "Vos clients réservent quand ça les arrange",
+  // Le pied de page oriente au lieu de signer.
+  'Le manque à gagner',
 ];
 const PHRASES_MARSEILLE = [
   'Vos créneaux vides valent 540 € par mois',
@@ -272,7 +285,49 @@ if (EST_INDEX) {
   ok(!/App Beauty|Bordeaux|commission de 12/i.test(texte), "aucune trace de l'ancien positionnement");
 }
 ok(!/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(texte), 'aucun emoji');
+/* Le tiret cadratin est la ponctuation-signature des textes générés. En
+   français, la virgule, le deux-points ou la parenthèse font le même travail
+   sans donner l'impression d'une page écrite par une machine. */
+{
+  const brut = await page.locator('body').innerText();
+  const restants = (brut.match(/[^\n]{0,34}[—–][^\n]{0,34}/g) || []).slice(0, 4);
+  ok(restants.length === 0, `aucun tiret cadratin dans le texte visible ${JSON.stringify(restants)}`);
+  const meta = await page.evaluate(() =>
+    [document.title, ...[...document.querySelectorAll('meta[content]')].map((m) => m.content)]
+      .filter((v) => v && (v.includes('—') || v.includes('–')))
+      .slice(0, 3),
+  );
+  ok(meta.length === 0, `aucun tiret cadratin dans le titre ni les métadonnées ${JSON.stringify(meta)}`);
+}
 ok(!/\b(Elevez|Boostez|Révolutionnaire|Nouvelle génération)\b/i.test(texte), 'aucun mot creux banni');
+
+/* -------------------------------------------------------------------------- */
+/*  4b. Le pied de page                                                       */
+/*      Un lien mort dans un pied de page ne se voit pas en relecture : il se */
+/*      découvre en démonstration. On vérifie donc que chaque ancre mène       */
+/*      quelque part, plutôt que de chercher des phrases — les intitulés       */
+/*      passent en capitales par CSS et ne sont pas comparables tels quels.   */
+/* -------------------------------------------------------------------------- */
+if (EST_INDEX) {
+  console.log('\n— Pied de page');
+  const pied = await page.evaluate(() => {
+    const ancres = [...document.querySelectorAll('footer a[href^="#"]')];
+    return {
+      liens: ancres.length,
+      mortes: ancres.map((a) => a.getAttribute('href')).filter((h) => !document.querySelector(h)),
+      metiers: document.querySelectorAll('footer .pied-liens span').length,
+      logo: !!document.querySelector('footer .logo-marque[aria-label]'),
+      appel: !!document.querySelector('footer .bouton'),
+      colonnes: getComputedStyle(document.querySelector('.pied')).gridTemplateColumns.split(' ').length,
+    };
+  });
+  ok(pied.liens >= 6, `le pied oriente vers la page (${pied.liens} liens)`);
+  ok(pied.mortes.length === 0, `aucune ancre morte dans le pied ${JSON.stringify(pied.mortes)}`);
+  ok(pied.metiers >= 6, `les métiers couverts sont listés (${pied.metiers})`);
+  ok(pied.logo, 'le pied porte la marque, annoncée aux lecteurs d’écran');
+  ok(pied.appel, 'le pied porte un dernier appel à l’action');
+  ok(pied.colonnes === 2, `sur mobile, les listes se partagent la largeur (${pied.colonnes} colonnes)`);
+}
 
 /* -------------------------------------------------------------------------- */
 /*  5. Le cœur interactif de la page                                          */
