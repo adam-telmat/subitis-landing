@@ -1571,11 +1571,21 @@
       };
 
       /* ---------------- Compteur du hero : 0 → 540 ---------------- */
+      // `figerCompteur` est appelé aussi par `beforeprint`. Sans l'arrêt
+      // explicite de l'animation, la frame suivante réécrivait la valeur et
+      // le PDF sortait avec « 538 € » — un chiffre faux dans un livrable.
+      let figerCompteur = () => {};
       (() => {
         const cible = document.getElementById('compteur');
         if (!cible) return;
-        if (reduit) {
+        let image = null;
+        figerCompteur = () => {
+          if (image !== null) cancelAnimationFrame(image);
+          image = null;
           cible.textContent = '540';
+        };
+        if (reduit) {
+          figerCompteur();
           return;
         }
         const debut = performance.now();
@@ -1585,10 +1595,10 @@
           // Sortie exponentielle : rapide au départ, se pose en douceur.
           const eased = 1 - Math.pow(2, -10 * t);
           cible.textContent = String(Math.round(eased * 540));
-          if (t < 1) requestAnimationFrame(pas);
-          else cible.textContent = '540';
+          if (t < 1) image = requestAnimationFrame(pas);
+          else figerCompteur();
         };
-        requestAnimationFrame(pas);
+        image = requestAnimationFrame(pas);
       })();
 
       /* ------------- Révélations et extinction des créneaux ------------- */
@@ -1741,7 +1751,7 @@
          atteints au défilement sortent vides sur le PDF. */
       window.addEventListener('beforeprint', () => {
         aReveler.forEach((el) => el.classList.add('vu'));
-        document.getElementById('compteur').textContent = '540';
+        figerCompteur();
       });
     </script>
   </body>

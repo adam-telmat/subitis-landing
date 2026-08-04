@@ -317,6 +317,52 @@ ok(masquesImpression.cachés.length === 0, `barre, appel collant et grain masqu�
 ok(masquesImpression.invisibles === 0, `aucun bloc vide sur le PDF (${masquesImpression.invisibles})`);
 await page.emulateMedia({ media: 'screen' });
 
+/* Le cas le plus dur : impression demandée AVANT la fin de l'animation du
+   compteur. Une frame en retard imprimait « 538 € » dans un livrable. */
+{
+  const c = await navigateur.newContext({ viewport: { width: 1040, height: 711 } });
+  const p2 = await c.newPage();
+  await p2.goto(URL_BASE, { waitUntil: 'domcontentloaded' });
+  await p2.emulateMedia({ media: 'print' });
+  await p2.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
+  await p2.waitForTimeout(500);
+  const valeur = await p2.locator('#compteur').innerText();
+  ok(valeur === '540', `impression immédiate : le compteur est figé à 540 (lu : ${valeur})`);
+  await c.close();
+}
+
+/* Navigation au clavier : chaque arrêt doit être visible et atteignable. */
+console.log('\n— Clavier');
+{
+  const c = await navigateur.newContext({ viewport: { width: 1280, height: 900 } });
+  const p3 = await c.newPage();
+  await p3.goto(URL_BASE, { waitUntil: 'load' });
+  await p3.evaluate(() => document.fonts.ready);
+  const arrets = [];
+  let sansContour = 0;
+  for (let i = 0; i < 22; i += 1) {
+    await p3.keyboard.press('Tab');
+    const info = await p3.evaluate(() => {
+      const e = document.activeElement;
+      if (!e || e === document.body) return null;
+      const s = getComputedStyle(e);
+      const contour = s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0;
+      return { nom: e.id || e.name || (e.textContent || '').trim().slice(0, 22) || e.tagName, contour };
+    });
+    if (!info) break;
+    arrets.push(info.nom);
+    if (!info.contour) sansContour += 1;
+  }
+  ok(arrets.length >= 8, `${arrets.length} arrêts de tabulation atteints`);
+  ok(sansContour === 0, `chaque arrêt montre un contour de focus (${sansContour} sans)`);
+
+  // Le bloc de demande doit s'ouvrir au clavier seul.
+  await p3.evaluate(() => document.getElementById('ouvrir-demande').focus());
+  await p3.keyboard.press('Enter');
+  ok(await p3.locator('#boite-demande').isVisible(), 'le bloc de demande s’ouvre à la touche Entrée');
+  await c.close();
+}
+
 const pdf = join(RACINE, 'apercu', 'subitis-landing.pdf');
 await mkdir(join(RACINE, 'apercu'), { recursive: true });
 const ctxPdf = await navigateur.newContext({ viewport: { width: 1280, height: 900 } });
