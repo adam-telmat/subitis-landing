@@ -1,19 +1,19 @@
 /**
- * Vérification automatisée de la landing, dans un vrai Chromium.
+ * Vérification automatisée des landings, dans un vrai Chromium.
  *
- *   node outils/verifier.mjs
+ *   node outils/verifier.mjs                 → vérifie index.html (la généraliste)
+ *   node outils/verifier.mjs marseille.html  → vérifie la page du pilote
  *
- * Chaque contrôle correspond à une règle de la base UI/UX Pro Max ou à une
- * exigence explicite de `hackathon/J2/BRIEF-LANDING-PAGE.md`. Un contrôle qui
- * échoue nomme la règle : on doit pouvoir décider quoi corriger sans relire
- * tout le fichier.
+ * Chaque contrôle correspond à une règle de la base UI/UX Pro Max ou à un
+ * invariant de la page. Un contrôle qui échoue nomme la règle : on doit
+ * pouvoir décider quoi corriger sans relire tout le fichier.
  *
  * Playwright n'est pas installé ici — on emprunte celui du dépôt de
  * l'application, qui est sur la même machine.
  */
 
 import { createServer } from 'node:http';
-import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { readFile, mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
@@ -21,6 +21,11 @@ import { createRequire } from 'node:module';
 const RACINE = join(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire('c:/Users/telmat/Desktop/hackaton-app/package.json');
 const { chromium } = require('@playwright/test');
+
+const PAGE_CIBLE = process.argv[2] ?? 'index.html';
+const EST_INDEX = PAGE_CIBLE === 'index.html';
+const PREFIXE = EST_INDEX ? 'landing' : 'marseille';
+console.log(`Cible : ${PAGE_CIBLE}`);
 
 const PORT = 4173;
 let echecs = 0;
@@ -30,7 +35,7 @@ const ok = (condition, message) => {
 };
 
 const serveur = createServer(async (req, res) => {
-  // Les photographies vivent a cote de index.html : le serveur de controle
+  // Les photographies vivent a cote de marseille.html : le serveur de controle
   // doit les servir, sinon les images apparaissent cassees dans les mesures.
   if (req.url && req.url.startsWith('/photos/')) {
     try {
@@ -42,7 +47,7 @@ const serveur = createServer(async (req, res) => {
       return res.end();
     }
   }
-  const html = await readFile(join(RACINE, 'index.html'));
+  const html = await readFile(join(RACINE, PAGE_CIBLE));
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
   res.end(html);
 });
@@ -74,7 +79,7 @@ for (const largeur of [320, 360, 390, 412, 768, 1024, 1280, 1440]) {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Le reste des contrôles se joue sur un mobile réel (Pixel 7 ≈ 412 px)      */
+/*  Le reste des contrôles se joue sur un mobile réel (390 px, DPR 2)         */
 /* -------------------------------------------------------------------------- */
 const ctx = await navigateur.newContext({
   viewport: { width: 390, height: 844 },
@@ -89,11 +94,11 @@ await page.goto(URL_BASE, { waitUntil: 'load' });
 await page.evaluate(() => document.fonts.ready);
 
 /* -------------------------------------------------------------------------- */
-/*  2. Cibles tactiles ≥ 44 px, espacement ≥ 8 px — sévérité HAUTE            */
+/*  2. Cibles tactiles ≥ 44 px — sévérité HAUTE                               */
 /* -------------------------------------------------------------------------- */
 console.log('\n— Cibles tactiles');
 const petites = await page.evaluate(() =>
-  [...document.querySelectorAll('a, button, input:not(.pot), select, .duo label')]
+  [...document.querySelectorAll('a, button, input:not(.pot), select, .duo label, summary')]
     // Un lien inseré dans une phrase suit la ligne de texte : lui imposer
     // 44 px casserait l'interligne. La regle vise les commandes autonomes.
     .filter((e) => !(e.tagName === 'A' && e.closest('p') && !e.classList.contains('bouton')))
@@ -172,7 +177,7 @@ const contrastes = await page.evaluate(() => {
     return `rgb(${r}, ${g}, ${b})`;
   };
   const out = [];
-  for (const el of document.querySelectorAll('p, h1, h2, h3, a, span, strong, b, em, li, dt, dd, td, th, label, button, small')) {
+  for (const el of document.querySelectorAll('p, h1, h2, h3, a, span, strong, b, em, li, dt, dd, td, th, label, button, small, output, summary')) {
     const t = el.textContent?.trim();
     if (!t || t.length < 2 || el.children.length > 0) continue;
     const s = getComputedStyle(el);
@@ -191,11 +196,23 @@ ok(sousSeuil.length === 0, `contraste AA sur ${contrastes.length} couples · pir
 if (sousSeuil.length) console.log('        ', JSON.stringify(sousSeuil.slice(0, 6)));
 
 /* -------------------------------------------------------------------------- */
-/*  4. Contenu imposé par le brief, mot pour mot                              */
+/*  4. Invariants de contenu, mot pour mot                                    */
 /* -------------------------------------------------------------------------- */
-console.log('\n— Contenu du brief');
+console.log('\n— Contenu');
 const texte = (await page.locator('body').innerText()).replace(/\u00A0/g, ' ').replace(/[’']/g, "'");
-for (const phrase of [
+const PHRASES_INDEX = [
+  'Vos clients réservent seuls',
+  'Votre agenda se remplit pendant que vous travaillez',
+  'Tester Subitis',
+  'Zéro commission',
+  'Vos prix restent vos prix',
+  'remboursé par une seule prestation',
+  'page de réservation professionnelle, référencée, à votre nom',
+  'Un créneau non vendu à 14 h est perdu à 15 h',
+  '29 €',
+  'Pourquoi êtes-vous moins cher que Planity',
+];
+const PHRASES_MARSEILLE = [
   'Vos créneaux vides valent 540 € par mois',
   'On vous les remplit',
   'Publier mes créneaux libres',
@@ -211,16 +228,22 @@ for (const phrase of [
   'validé à la main',
   "jamais une disponibilité qui n'existe pas",
   'Vous cherchez une prestation à domicile',
-]) ok(texte.includes(phrase), `« ${phrase} »`);
+];
+for (const phrase of EST_INDEX ? PHRASES_INDEX : PHRASES_MARSEILLE) ok(texte.includes(phrase), `« ${phrase} »`);
 
-ok(!/App Beauty|Bordeaux|commission de 12/i.test(texte), "aucune trace de l'ancien positionnement");
+if (EST_INDEX) {
+  // Le contre-positionnement attaque le modèle, jamais une enseigne à
+  // commission nommée. Seule Planity (abonnement) est citée, en FAQ.
+  ok(!/Wecasa|Treatwell|Fresha/i.test(texte), 'aucune place de marché à commission nommée');
+} else {
+  ok(!/App Beauty|Bordeaux|commission de 12/i.test(texte), "aucune trace de l'ancien positionnement");
+}
 ok(!/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(texte), 'aucun emoji');
 ok(!/\b(Elevez|Boostez|Révolutionnaire|Nouvelle génération)\b/i.test(texte), 'aucun mot creux banni');
 
 /* -------------------------------------------------------------------------- */
-/*  5. Le KPI n°3 : le bloc de demande                                        */
+/*  5. Le cœur interactif de la page                                          */
 /* -------------------------------------------------------------------------- */
-console.log('\n— Bloc de demande (KPI n°3)');
 const evenements = [];
 await page.exposeFunction('__ev', (n) => evenements.push(n));
 await page.evaluate(() => {
@@ -228,15 +251,62 @@ await page.evaluate(() => {
     if (type === 'event') window.__ev(nom);
   };
 });
-ok(await page.locator('#boite-demande').isHidden(), 'le mini-formulaire est replié au départ');
-await page.locator('#ouvrir-demande').click();
-ok(await page.locator('#boite-demande').isVisible(), 'il se déplie au clic');
-ok(evenements.includes('interet_cliente'), `l'événement GA4 « interet_cliente » est émis ${JSON.stringify(evenements)}`);
-ok(
-  (await page.locator('#ouvrir-demande').getAttribute('aria-expanded')) === 'true',
-  'aria-expanded suit l’état',
-);
-ok(await page.locator('#prestation').evaluate((e) => e === document.activeElement), 'le focus part sur le premier champ');
+
+if (EST_INDEX) {
+  console.log('\n— Calculateur');
+  await page.waitForTimeout(1100); // l'animation d'ouverture dure 900 ms
+  ok((await page.locator('#calc-total').innerText()) === '540', 'valeur par défaut : 45 € × 3 × 4 = 540');
+
+  const normalise = (s) => s.replace(/[\s\u00A0\u202F]/g, '');
+  await page.evaluate(() => {
+    const v = document.getElementById('calc-vides');
+    v.value = '5';
+    v.dispatchEvent(new Event('input', { bubbles: true }));
+    v.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  ok(normalise(await page.locator('#calc-total').innerText()) === '900', 'recalcul instantané : 45 € × 5 × 4 = 900');
+
+  await page.evaluate(() => {
+    const p = document.getElementById('calc-prix');
+    p.value = '100';
+    p.dispatchEvent(new Event('input', { bubbles: true }));
+    p.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  ok(normalise(await page.locator('#calc-total').innerText()) === '2000', 'grands montants formatés : 100 € × 5 × 4 = 2 000');
+  ok(
+    evenements.filter((n) => n === 'calcul_manque_a_gagner').length === 1,
+    `l'événement GA4 « calcul_manque_a_gagner » est émis une seule fois ${JSON.stringify(evenements)}`,
+  );
+  ok(
+    (await page.locator('.calc-resultat').getAttribute('aria-live')) === 'polite',
+    'le résultat est annoncé aux lecteurs d’écran (aria-live)',
+  );
+
+  console.log('\n— Écrans de téléphone');
+  const mockups = await page.evaluate(() => ({
+    total: document.querySelectorAll('.telephone').length,
+    interactifs: document.querySelectorAll(
+      '.telephone a, .telephone button, .telephone input, .telephone select, .telephone h1, .telephone h2, .telephone h3',
+    ).length,
+    sansRole: [...document.querySelectorAll('.telephone')].filter(
+      (t) => t.getAttribute('role') !== 'img' || !t.getAttribute('aria-label'),
+    ).length,
+  }));
+  ok(mockups.total === 5, `cinq écrans de téléphone dessinés (${mockups.total})`);
+  ok(mockups.interactifs === 0, `aucun élément interactif ni titre dans les écrans factices (${mockups.interactifs})`);
+  ok(mockups.sansRole === 0, `chaque écran porte role="img" et une description (${mockups.sansRole} sans)`);
+} else {
+  console.log('\n— Bloc de demande (KPI n°3)');
+  ok(await page.locator('#boite-demande').isHidden(), 'le mini-formulaire est replié au départ');
+  await page.locator('#ouvrir-demande').click();
+  ok(await page.locator('#boite-demande').isVisible(), 'il se déplie au clic');
+  ok(evenements.includes('interet_cliente'), `l'événement GA4 « interet_cliente » est émis ${JSON.stringify(evenements)}`);
+  ok(
+    (await page.locator('#ouvrir-demande').getAttribute('aria-expanded')) === 'true',
+    'aria-expanded suit l’état',
+  );
+  ok(await page.locator('#prestation').evaluate((e) => e === document.activeElement), 'le focus part sur le premier champ');
+}
 
 /* -------------------------------------------------------------------------- */
 /*  6. Les formulaires ne mentent pas quand ENDPOINT est vide                 */
@@ -245,8 +315,8 @@ console.log('\n— Honnêteté des formulaires');
 await page.waitForTimeout(1600);
 await page.fill('#prenom', 'Test');
 await page.selectOption('#metier', { index: 1 });
-await page.check('input[name=deplacement][value=oui]');
-await page.fill('#zone', '13006');
+if (!EST_INDEX) await page.check('input[name=deplacement][value=oui]');
+await page.fill('#zone', EST_INDEX ? 'Lyon 3e' : '13006');
 await page.fill('#contact', '0600000000');
 await page.click('#form-pro button[type=submit]');
 const alerte = await page.locator('#alerte-pro').innerText();
@@ -275,6 +345,7 @@ const durees = await page.evaluate(() =>
 const maxDuree = Math.max(0, ...durees);
 ok(maxDuree <= 300, `aucune transition au-delà de 300 ms (max ${maxDuree} ms)`);
 
+const ID_COMPTEUR = EST_INDEX ? '#calc-total' : '#compteur';
 const ctxReduit = await navigateur.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
 const pageReduite = await ctxReduit.newPage();
 await pageReduite.goto(URL_BASE, { waitUntil: 'load' });
@@ -285,7 +356,7 @@ const invisibles = await pageReduite.evaluate(
 );
 ok(invisibles === 0, `mouvement réduit : rien n'est masqué (${invisibles} bloc(s) invisible(s))`);
 ok(
-  (await pageReduite.locator('#compteur').innerText()) === '540',
+  (await pageReduite.locator(ID_COMPTEUR).innerText()) === '540',
   'mouvement réduit : le compteur affiche directement 540',
 );
 await ctxReduit.close();
@@ -323,10 +394,17 @@ const masquesImpression = await page.evaluate(() => {
     return e && getComputedStyle(e).display !== 'none';
   });
   const invisibles = [...document.querySelectorAll('.reveal')].filter((e) => getComputedStyle(e).opacity !== '1').length;
-  return { cachés, invisibles };
+  const curseursVisibles = [...document.querySelectorAll('.curseur')].filter((e) => getComputedStyle(e).display !== 'none').length;
+  const exemple = document.querySelector('.calc-print');
+  const exempleVisible = !exemple || getComputedStyle(exemple).display !== 'none';
+  return { cachés, invisibles, curseursVisibles, exempleVisible };
 });
 ok(masquesImpression.cachés.length === 0, `barre, appel collant et grain masqués ${JSON.stringify(masquesImpression.cachés)}`);
 ok(masquesImpression.invisibles === 0, `aucun bloc vide sur le PDF (${masquesImpression.invisibles})`);
+if (EST_INDEX) {
+  ok(masquesImpression.curseursVisibles === 0, 'les curseurs sont masqués à l’impression');
+  ok(masquesImpression.exempleVisible, 'la phrase-exemple remplace les curseurs sur le PDF');
+}
 await page.emulateMedia({ media: 'screen' });
 
 /* Le cas le plus dur : impression demandée AVANT la fin de l'animation du
@@ -338,7 +416,7 @@ await page.emulateMedia({ media: 'screen' });
   await p2.emulateMedia({ media: 'print' });
   await p2.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
   await p2.waitForTimeout(500);
-  const valeur = await p2.locator('#compteur').innerText();
+  const valeur = await p2.locator(ID_COMPTEUR).innerText();
   ok(valeur === '540', `impression immédiate : le compteur est figé à 540 (lu : ${valeur})`);
   await c.close();
 }
@@ -368,14 +446,23 @@ console.log('\n— Clavier');
   ok(arrets.length >= 8, `${arrets.length} arrêts de tabulation atteints`);
   ok(sansContour === 0, `chaque arrêt montre un contour de focus (${sansContour} sans)`);
 
-  // Le bloc de demande doit s'ouvrir au clavier seul.
-  await p3.evaluate(() => document.getElementById('ouvrir-demande').focus());
-  await p3.keyboard.press('Enter');
-  ok(await p3.locator('#boite-demande').isVisible(), 'le bloc de demande s’ouvre à la touche Entrée');
+  if (EST_INDEX) {
+    // La FAQ doit s'ouvrir au clavier seul.
+    await p3.evaluate(() => document.querySelector('.faq summary').focus());
+    await p3.keyboard.press('Enter');
+    ok(
+      await p3.locator('.faq details').first().evaluate((d) => d.open),
+      'la première question de la FAQ s’ouvre à la touche Entrée',
+    );
+  } else {
+    await p3.evaluate(() => document.getElementById('ouvrir-demande').focus());
+    await p3.keyboard.press('Enter');
+    ok(await p3.locator('#boite-demande').isVisible(), 'le bloc de demande s’ouvre à la touche Entrée');
+  }
   await c.close();
 }
 
-const pdf = join(RACINE, 'apercu', 'subitis-landing.pdf');
+const pdf = join(RACINE, 'apercu', EST_INDEX ? 'subitis-landing.pdf' : 'marseille.pdf');
 await mkdir(join(RACINE, 'apercu'), { recursive: true });
 const ctxPdf = await navigateur.newContext({ viewport: { width: 1280, height: 900 } });
 const pagePdf = await ctxPdf.newPage();
@@ -384,7 +471,7 @@ await pagePdf.evaluate(() => document.fonts.ready);
 await pagePdf.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
 await pagePdf.pdf({ path: pdf, format: 'A4', landscape: true, printBackground: true, margin: { top: '11mm', bottom: '11mm', left: '11mm', right: '11mm' } });
 const taillePdf = (await readFile(pdf)).length;
-ok(taillePdf > 20000, `PDF paysage généré (${Math.round(taillePdf / 1024)} Ko) → apercu/subitis-landing.pdf`);
+ok(taillePdf > 20000, `PDF paysage généré (${Math.round(taillePdf / 1024)} Ko) → apercu/${EST_INDEX ? 'subitis-landing' : 'marseille'}.pdf`);
 await ctxPdf.close();
 
 /* -------------------------------------------------------------------------- */
@@ -398,11 +485,11 @@ for (const largeur of [390, 768, 1280]) {
   await p.goto(URL_BASE, { waitUntil: 'load' });
   await p.evaluate(() => document.fonts.ready);
   await p.evaluate(() => {
-    document.querySelectorAll('.reveal, #semaine').forEach((e) => e.classList.add('vu'));
+    document.querySelectorAll('.reveal, .telephone, #semaine').forEach((e) => e.classList.add('vu'));
   });
   await p.waitForTimeout(200);
-  await p.screenshot({ path: join(RACINE, 'apercu', `landing-${largeur}.png`), fullPage: true });
-  console.log(`  ok   apercu/landing-${largeur}.png`);
+  await p.screenshot({ path: join(RACINE, 'apercu', `${PREFIXE}-${largeur}.png`), fullPage: true });
+  console.log(`  ok   apercu/${PREFIXE}-${largeur}.png`);
   await c.close();
 }
 
@@ -411,7 +498,7 @@ ok(erreursConsole.length === 0, `aucune erreur console ${JSON.stringify(erreursC
 await navigateur.close();
 serveur.close();
 
-const html = await readFile(join(RACINE, 'index.html'));
+const html = await readFile(join(RACINE, PAGE_CIBLE));
 console.log(`\nPoids de la page : ${Math.round(html.length / 1024)} Ko, fichier unique et autonome.`);
 console.log(echecs === 0 ? '\nTOUT VERT\n' : `\n${echecs} ECHEC(S)\n`);
 process.exit(echecs === 0 ? 0 : 1);
