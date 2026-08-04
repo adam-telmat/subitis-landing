@@ -327,6 +327,36 @@ if (EST_INDEX) {
   ok(pied.logo, 'le pied porte la marque, annoncée aux lecteurs d’écran');
   ok(pied.appel, 'le pied porte un dernier appel à l’action');
   ok(pied.colonnes === 2, `sur mobile, les listes se partagent la largeur (${pied.colonnes} colonnes)`);
+
+  /* Les listes des offres sont des grilles à deux cases : la coche, le texte.
+     Une grille traite chaque enfant comme une case — un <strong> suivi de
+     texte en fait donc deux, et la seconde bascule seule à la ligne. Le
+     défaut est invisible tant qu'aucune ligne ne mêle gras et texte simple,
+     puis il défigure la carte. On impose donc la structure. */
+  const listes = await page.evaluate(() =>
+    [...document.querySelectorAll('.offre-liste li')]
+      .map((li) => ({
+        t: (li.textContent || '').trim().slice(0, 30),
+        cases: [...li.childNodes].filter(
+          (n) => n.nodeType === 1 || (n.nodeType === 3 && n.textContent.trim()),
+        ).length,
+      }))
+      .filter((x) => x.cases !== 2),
+  );
+  ok(listes.length === 0, `chaque ligne d'offre tient en deux cases : coche et texte ${JSON.stringify(listes.slice(0, 3))}`);
+
+  const paliers = await page.evaluate(() => {
+    const carte = (sel) => document.querySelector(sel);
+    const compte = (sel) => carte(sel)?.querySelectorAll('.offre-liste li').length ?? 0;
+    return {
+      classique: compte('.offre:not(.offre-phare)'),
+      premium: compte('.offre-phare'),
+    };
+  });
+  ok(
+    paliers.premium > paliers.classique,
+    `le Premium annonce plus que le Classique (${paliers.premium} contre ${paliers.classique})`,
+  );
 }
 
 /* -------------------------------------------------------------------------- */

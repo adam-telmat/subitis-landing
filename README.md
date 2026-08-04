@@ -162,11 +162,47 @@ sur une page d'abonnement ; la faire attendre derrière deux sections de pédago
 remonter le visiteur à contresens. Le contre-positionnement (commission contre abonnement)
 vient après : il justifie un prix déjà connu au lieu de le préparer.
 
-**Les trois offres ont la même structure** — nom, à qui elle s'adresse, prix, liste,
-appel. Auparavant le Classique affichait six lignes et le Premium un simple paragraphe :
-payer plus semblait donner moins. La carte Premium est signalée par « Notre recommandation »,
-jamais par « la plus populaire » : nous n'avons aucune donnée d'usage, et cette page ne
-prétend à aucune traction.
+**Les trois offres ont la même structure** : nom, à qui elle s'adresse, prix, liste, appel.
+La carte Premium est signalée par « Notre recommandation », jamais par « la plus
+populaire » : nous n'avons aucune donnée d'usage, et cette page ne prétend à aucune traction.
+
+### Ce qui sépare 19 € de 39 €
+
+> **19 € : vous arrêtez de répondre au téléphone.
+> 39 € : vous arrêtez de perdre de l'argent.**
+
+Le premier découpage était bancal : le Classique donnait le produit entier et le Premium
+ajoutait des statistiques. Personne ne paie le double pour des graphiques.
+
+L'axe retenu vient de l'analyse de la concurrence. Planity ne publie pas ses prix (il faut
+demander un devis) et sa montée en gamme ne repose pas sur la visibilité mais sur **l'argent** :
+agenda, puis caisse enregistreuse certifiée, puis encaissement et terminal de paiement. Les
+rappels SMS y sont un **module facturé en plus** de l'abonnement, avec un coût par message.
+
+D'où le découpage :
+
+| | Classique 19 € | Premium 39 € |
+| --- | --- | --- |
+| Ce qu'on arrête | de répondre au téléphone | de perdre de l'argent |
+| Rappels | email | **SMS inclus** |
+| Encaissement | — | **acompte à la réservation, paiement en ligne** |
+| Reconquête | — | **relance des clients qui ne sont pas revenus** |
+| Équipe | un agenda, un praticien | jusqu'à trois |
+| Visibilité | page référencée, avis | profil mis en avant, fréquentation suivie |
+
+L'écart de 20 € se défend par un **coût unitaire réel** (SMS, frais bancaires) et non par une
+marge décidée au hasard. Et il vise la douleur qui coûte le plus cher : un rendez-vous oublié
+vaut plus qu'un mois d'abonnement.
+
+> [!IMPORTANT]
+> **Écrire une fonctionnalité sur la page, c'est promettre qu'elle existera.** Le Premium
+> engage donc le produit sur les rappels SMS, l'acompte et le paiement en ligne. Si l'un des
+> trois ne se fait pas, il doit disparaître de la carte avant la diffusion. Les prix
+> eux-mêmes restent ceux du Business Model Canvas, qui les marque « à valider ».
+
+Une entrée de FAQ protège la promesse centrale : le paiement en ligne fait intervenir des
+frais bancaires, qui ne sont pas les nôtres. Sans cette précision, « zéro commission » et
+« paiement en ligne » se contrediraient.
 
 Le contenu s'appuie sur les documents de `plan-landing/` (BMC abonnement, fiche marché,
 personas) : les prix, les chiffres du marché (27 000 coiffeurs à domicile, revenu moyen sous
