@@ -13,6 +13,14 @@
     <meta name="theme-color" content="#FBF9F6" />
     <link rel="canonical" href="https://subitis.fr/" />
 
+    <!-- Favicon dessiné en SVG, dans la balise : aucune requête, net à toutes
+         les tailles. Le trait est volontairement plus épais que le logo de la
+         barre — à 16 px, le cercle fin de la marque disparaît. -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Crect width='34' height='34' rx='8' fill='%23FBF9F6'/%3E%3Cpath d='M17 3.5a13.5 13.5 0 0 1 11.7 20.3' fill='none' stroke='%23A03A4E' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='17' cy='17' r='5' fill='%2317110F'/%3E%3C/svg%3E"
+    />
+
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="fr_FR" />
     <meta property="og:site_name" content="Subitis" />
@@ -288,6 +296,16 @@
       }
       .pilule {
         padding-right: 1.35rem;
+      }
+      /* Le bicolore de la marque : « subit » en encre, « is » en carmin, en
+         bas de casse. C'est la signature du logo, rendue avec la police déjà
+         embarquée — donc nette à toute taille et sans un octet de plus. */
+      .mot {
+        letter-spacing: -0.03em;
+      }
+      .mot b {
+        color: var(--rose-700);
+        font-weight: inherit;
       }
       .marque small {
         display: block;
@@ -1190,6 +1208,24 @@
       }
       .calc-resultat .detail strong {
         color: var(--canvas);
+      }
+      /* Une relance : l'appel posé juste après un argument qui vient de
+         porter. Deux sur la page, pas cinq — un bouton après chaque section
+         devient du décor qu'on ne voit plus. */
+      .relance {
+        margin-top: 2rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 1rem 1.5rem;
+      }
+      .relance p {
+        font-size: 1.0625rem;
+        color: var(--ink-700);
+        max-width: 38ch;
+      }
+      .negatif .relance p {
+        color: rgba(251, 249, 246, 0.82);
       }
       /* Un PDF ne montre jamais un contrôle interactif mort : à l'impression,
          les curseurs disparaissent et cette phrase-exemple les remplace. */
@@ -2114,7 +2150,7 @@
               <path d="M17 1a16 16 0 0 1 13.9 23.9" fill="none" stroke="#A03A4E" stroke-width="2.4" stroke-linecap="round" />
               <circle cx="17" cy="17" r="4.6" fill="#17110F" />
             </svg>
-          </span><span>Subitis <small>Réservation en ligne</small></span></div>
+          </span><span class="mot">subit<b>is</b> <small>Réservation en ligne</small></span></div>
         <a class="bouton" href="#essai">
           Tester Subitis
           <i aria-hidden="true">
@@ -2292,6 +2328,20 @@
                 <p class="detail" id="calc-equiv">Soit 28 fois l'abonnement Classique à 19&nbsp;€. Un créneau libre ne se reporte pas au lendemain.</p>
               </div>
             </div>
+          </div>
+
+          <!-- L'appel arrive ici parce que le chiffre vient de tomber : c'est
+               le moment de la page où le visiteur a le plus de raisons d'agir. -->
+          <div class="relance">
+            <p>Ce chiffre vous parle&nbsp;? L'abonnement qui va avec coûte <strong class="nb">19&nbsp;€ par mois</strong>.</p>
+            <a class="bouton" href="#essai">
+              Tester Subitis
+              <i aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <path d="M4.5 11.5L11.5 4.5M11.5 4.5H5.5M11.5 4.5V10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </i>
+            </a>
           </div>
         </div>
       </section>
@@ -2589,6 +2639,19 @@
             </p>
           </div>
 
+          <!-- Second appel : la démonstration chiffrée vient de se refermer. -->
+          <div class="relance">
+            <p>Zéro commission, à vos prix, dès votre première réservation.</p>
+            <a class="bouton bouton-clair" href="#essai">
+              Tester Subitis
+              <i aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <path d="M4.5 11.5L11.5 4.5M11.5 4.5H5.5M11.5 4.5V10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </i>
+            </a>
+          </div>
+
           <p class="source">
             Exemple au taux de 25&nbsp;% relevé chez le leader de la beauté à domicile — il était de
             16&nbsp;% HT en 2018. Aucun nom sur cette page&nbsp;: ce qu'on discute, c'est le modèle,
@@ -2829,7 +2892,7 @@
     <footer>
       <div class="contenant pied">
         <div>
-          <div class="marque">Subitis</div>
+          <div class="marque mot">subit<b>is</b></div>
           <p style="margin-top: 0.45rem">
             La réservation en ligne des professionnels de la beauté. Barbier, coiffure,
             esthétique, onglerie, maquillage, bien-être.
