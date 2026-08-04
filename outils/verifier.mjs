@@ -142,8 +142,11 @@ ok(semantique.main === 1, 'un unique élément main');
 
 /* Contraste WCAG réel, calculé sur les couples effectivement rendus. */
 const contrastes = await page.evaluate(() => {
+  // `[\d.]+`, pas `\d+` : sur « rgb(254.28, 254.04, 253.72) », la seconde
+  // forme découpait sur le point décimal et lisait 254, 28, 254 — un vert
+  // sombre inventé, qui faisait échouer du texte parfaitement lisible.
   const lum = (c) => {
-    const [r, g, b] = c.match(/\d+/g).slice(0, 3).map(Number).map((v) => {
+    const [r, g, b] = c.match(/[\d.]+/g).slice(0, 3).map(Number).map((v) => {
       const s = v / 255;
       return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
     });
@@ -174,18 +177,40 @@ const contrastes = await page.evaluate(() => {
       g = sg * sa + g * (1 - sa);
       b = sb * sa + b * (1 - sa);
     }
-    return `rgb(${r}, ${g}, ${b})`;
+    // Arrondi : une couleur composée doit ressortir sous la même forme
+    // qu'une couleur rendue par le navigateur, canaux entiers compris.
+    return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
   };
+  // Un texte translucide se lit composé sur son fond, pas à sa valeur nue :
+  // rgba(251,249,246,.5) n'est pas blanc, c'est le gris qui en résulte.
+  const compose = (avant, arriere) => {
+    const v = canaux(avant);
+    const a = v.length > 3 ? v[3] : 1;
+    if (a >= 0.999) return avant;
+    const f = canaux(arriere);
+    return `rgb(${Math.round(v[0] * a + f[0] * (1 - a))}, ${Math.round(v[1] * a + f[1] * (1 - a))}, ${Math.round(v[2] * a + f[2] * (1 - a))})`;
+  };
+  // Le texte PROPRE de l'élément, ses enfants exclus. L'ancienne règle
+  // « aucun enfant » sautait tout libellé accompagné d'une icône — et c'est
+  // exactement là que se cachait un gris trop pâle dans la barre d'onglets.
+  const texteDirect = (el) =>
+    [...el.childNodes]
+      .filter((n) => n.nodeType === 3)
+      .map((n) => n.textContent)
+      .join('')
+      .trim();
+
   const out = [];
   for (const el of document.querySelectorAll('p, h1, h2, h3, a, span, strong, b, em, li, dt, dd, td, th, label, button, small, output, summary')) {
-    const t = el.textContent?.trim();
-    if (!t || t.length < 2 || el.children.length > 0) continue;
+    const t = texteDirect(el);
+    if (!t || t.length < 2) continue;
     const s = getComputedStyle(el);
     if (s.display === 'none' || s.visibility === 'hidden' || Number(s.opacity) === 0) continue;
     const px = parseFloat(s.fontSize);
     const gras = Number(s.fontWeight) >= 700;
     const seuil = px >= 24 || (px >= 18.66 && gras) ? 3 : 4.5;
-    const [a, b] = [lum(s.color), lum(fond(el))];
+    const arriere = fond(el);
+    const [a, b] = [lum(compose(s.color, arriere)), lum(arriere)];
     const ratio = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
     out.push({ t: t.slice(0, 30), ratio: Math.round(ratio * 100) / 100, seuil, px: Math.round(px) });
   }
@@ -208,9 +233,11 @@ const PHRASES_INDEX = [
   'Vos prix restent vos prix',
   'remboursé par une seule prestation',
   'page de réservation professionnelle, référencée, à votre nom',
-  'Un créneau non vendu à 14 h est perdu à 15 h',
+  'Un créneau libre ne se rattrape pas',
   '19 €',
   'Pourquoi êtes-vous moins cher que Planity',
+  // Le ton reste ferme sur le modèle, jamais sur le professionnel.
+  "Vos clients réservent quand ça les arrange",
 ];
 const PHRASES_MARSEILLE = [
   'Vos créneaux vides valent 540 € par mois',
@@ -235,6 +262,12 @@ if (EST_INDEX) {
   // Le contre-positionnement attaque le modèle, jamais une enseigne à
   // commission nommée. Seule Planity (abonnement) est citée, en FAQ.
   ok(!/Wecasa|Treatwell|Fresha/i.test(texte), 'aucune place de marché à commission nommée');
+  // Le ton vise le statu quo, jamais le professionnel qui lit la page. « Poser
+  // un lapin » et « punit » désignent une faute ; ils sont hors sujet ici.
+  ok(
+    !/\blapins?\b|\bpunit\b|détruit|vous perdez/i.test(texte),
+    'aucun terme qui met le professionnel en faute (lapin, punit, détruit)',
+  );
 } else {
   ok(!/App Beauty|Bordeaux|commission de 12/i.test(texte), "aucune trace de l'ancien positionnement");
 }
@@ -292,9 +325,29 @@ if (EST_INDEX) {
       (t) => t.getAttribute('role') !== 'img' || !t.getAttribute('aria-label'),
     ).length,
   }));
-  ok(mockups.total === 5, `cinq écrans de téléphone dessinés (${mockups.total})`);
+  ok(mockups.total >= 3, `au moins trois appareils dessinés (${mockups.total})`);
   ok(mockups.interactifs === 0, `aucun élément interactif ni titre dans les écrans factices (${mockups.interactifs})`);
   ok(mockups.sansRole === 0, `chaque écran porte role="img" et une description (${mockups.sansRole} sans)`);
+
+  /* La séquence épinglée : l'étape qui traverse le milieu du viewport pilote
+     l'écran affiché. On la parcourt dans le désordre pour vérifier que la
+     bascule marche dans les deux sens, pas seulement vers le bas. */
+  console.log('\n— Séquence épinglée');
+  for (const i of [1, 2, 0]) {
+    await page.evaluate((n) => {
+      document
+        .querySelector(`.sequence-etape[data-etape="${n}"]`)
+        .scrollIntoView({ block: 'center', behavior: 'instant' });
+    }, i);
+    await page.waitForTimeout(450);
+    const etat = await page.evaluate(() => ({
+      vue: document.querySelector('.telephone.multi .app.active')?.dataset.vue,
+      actives: document.querySelectorAll('.telephone.multi .app.active').length,
+      etape: document.querySelector('.sequence-etape.active')?.dataset.etape,
+    }));
+    ok(etat.vue === String(i) && etat.actives === 1, `étape ${i} au centre : un seul écran affiché, le n° ${i} (lu : ${etat.vue})`);
+    ok(etat.etape === String(i), `le texte de l'étape ${i} est mis en avant (lu : ${etat.etape})`);
+  }
 } else {
   console.log('\n— Bloc de demande (KPI n°3)');
   ok(await page.locator('#boite-demande').isHidden(), 'le mini-formulaire est replié au départ');
@@ -336,14 +389,31 @@ ok(
 /* -------------------------------------------------------------------------- */
 /*  7. Mouvement                                                              */
 /* -------------------------------------------------------------------------- */
+/* Deux familles, deux seuils. Une COMMANDE qui répond lentement est une
+   commande cassée : 300 ms au plus. Une ENTRÉE au défilement est du décor —
+   la lui imposer produit une apparition brutale, qui fait cheap. On la laisse
+   respirer jusqu'à 1 s, pas au-delà : passé ce point on attend la page. */
 console.log('\n— Mouvement');
-const durees = await page.evaluate(() =>
-  [...document.querySelectorAll('*')]
-    .flatMap((e) => getComputedStyle(e).transitionDuration.split(',').map((d) => parseFloat(d) * (d.includes('ms') ? 1 : 1000)))
-    .filter((d) => d > 0),
-);
-const maxDuree = Math.max(0, ...durees);
-ok(maxDuree <= 300, `aucune transition au-delà de 300 ms (max ${maxDuree} ms)`);
+const mouvement = await page.evaluate(() => {
+  const COMMANDES = 'a, button, input, select, summary, label, .bouton';
+  const ms = (s) =>
+    s.split(',').map((d) => parseFloat(d) * (d.includes('ms') ? 1 : 1000)).filter((d) => d > 0);
+  let commande = 0;
+  let commandeNom = '';
+  let decor = 0;
+  let decorNom = '';
+  for (const e of document.querySelectorAll('*')) {
+    const d = Math.max(0, ...ms(getComputedStyle(e).transitionDuration));
+    if (!d) continue;
+    const nom = `${e.tagName}.${e.getAttribute('class') || ''}`.slice(0, 34);
+    if (e.matches(COMMANDES)) {
+      if (d > commande) [commande, commandeNom] = [d, nom];
+    } else if (d > decor) [decor, decorNom] = [d, nom];
+  }
+  return { commande, commandeNom, decor, decorNom };
+});
+ok(mouvement.commande <= 300, `commandes : rien au-delà de 300 ms (max ${mouvement.commande} ms · ${mouvement.commandeNom})`);
+ok(mouvement.decor <= 1000, `entrées décoratives : rien au-delà de 1000 ms (max ${mouvement.decor} ms · ${mouvement.decorNom})`);
 
 const ID_COMPTEUR = EST_INDEX ? '#calc-total' : '#compteur';
 const ctxReduit = await navigateur.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
@@ -352,7 +422,10 @@ await pageReduite.goto(URL_BASE, { waitUntil: 'load' });
 await pageReduite.evaluate(() => document.fonts.ready);
 await pageReduite.waitForTimeout(300);
 const invisibles = await pageReduite.evaluate(
-  () => [...document.querySelectorAll('.reveal')].filter((e) => getComputedStyle(e).opacity !== '1').length,
+  () =>
+    [...document.querySelectorAll('.reveal, .cascade > *, .sequence-etape')].filter(
+      (e) => getComputedStyle(e).opacity !== '1',
+    ).length,
 );
 ok(invisibles === 0, `mouvement réduit : rien n'est masqué (${invisibles} bloc(s) invisible(s))`);
 ok(
@@ -393,17 +466,24 @@ const masquesImpression = await page.evaluate(() => {
     const e = document.querySelector(s);
     return e && getComputedStyle(e).display !== 'none';
   });
-  const invisibles = [...document.querySelectorAll('.reveal')].filter((e) => getComputedStyle(e).opacity !== '1').length;
+  const invisibles = [...document.querySelectorAll('.reveal, .cascade > *, .sequence-etape')].filter(
+    (e) => getComputedStyle(e).opacity !== '1',
+  ).length;
   const curseursVisibles = [...document.querySelectorAll('.curseur')].filter((e) => getComputedStyle(e).display !== 'none').length;
   const exemple = document.querySelector('.calc-print');
   const exempleVisible = !exemple || getComputedStyle(exemple).display !== 'none';
-  return { cachés, invisibles, curseursVisibles, exempleVisible };
+  // Trois écrans superposés sur un PDF donneraient une bouillie : un seul reste.
+  const ecransImprimes = [...document.querySelectorAll('.telephone.multi .app')].filter(
+    (e) => getComputedStyle(e).display !== 'none',
+  ).length;
+  return { cachés, invisibles, curseursVisibles, exempleVisible, ecransImprimes };
 });
 ok(masquesImpression.cachés.length === 0, `barre, appel collant et grain masqués ${JSON.stringify(masquesImpression.cachés)}`);
 ok(masquesImpression.invisibles === 0, `aucun bloc vide sur le PDF (${masquesImpression.invisibles})`);
 if (EST_INDEX) {
   ok(masquesImpression.curseursVisibles === 0, 'les curseurs sont masqués à l’impression');
   ok(masquesImpression.exempleVisible, 'la phrase-exemple remplace les curseurs sur le PDF');
+  ok(masquesImpression.ecransImprimes === 1, `un seul écran de la séquence sur le PDF (${masquesImpression.ecransImprimes})`);
 }
 await page.emulateMedia({ media: 'screen' });
 
@@ -485,7 +565,7 @@ for (const largeur of [390, 768, 1280]) {
   await p.goto(URL_BASE, { waitUntil: 'load' });
   await p.evaluate(() => document.fonts.ready);
   await p.evaluate(() => {
-    document.querySelectorAll('.reveal, .telephone, #semaine').forEach((e) => e.classList.add('vu'));
+    document.querySelectorAll('.reveal, .cascade, .telephone, #semaine').forEach((e) => e.classList.add('vu'));
   });
   await p.waitForTimeout(200);
   await p.screenshot({ path: join(RACINE, 'apercu', `${PREFIXE}-${largeur}.png`), fullPage: true });

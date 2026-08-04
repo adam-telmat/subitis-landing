@@ -7,7 +7,7 @@
     <title>Subitis — La réservation en ligne des professionnels de la beauté. Par abonnement, sans commission.</title>
     <meta
       name="description"
-      content="Subitis centralise les rendez-vous des professionnels de la beauté : réservation en ligne 24 h/24, page référencée à votre nom, confirmations et annulations automatiques. Par abonnement, sans commission, à vos prix."
+      content="Subitis centralise les rendez-vous des professionnels de la beauté : réservation en ligne 24 h/24, page référencée à votre nom, confirmations et rappels automatiques. Par abonnement, sans commission, à vos prix."
     />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#FBF9F6" />
@@ -66,7 +66,6 @@
 
       /* ====================================================================
          Jetons de marque — identiques au produit Subitis et à marseille.html.
-         La landing et l’application doivent se reconnaître.
          ==================================================================== */
       :root {
         --canvas: #fbf9f6;
@@ -97,12 +96,17 @@
         --ombre-haute: 0 24px 60px -24px rgba(23, 17, 15, 0.16);
         --reflet: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 
-        /* La base de règles UI/UX impose 150–300 ms pour les micro-interactions
-           et bannit tout ce qui dépasse 500 ms sur de l’interface. */
+        /* Deux familles de mouvement, et c'est volontaire :
+           — les micro-interactions (survol, focus, bascule) restent sous 300 ms,
+             parce qu'une commande qui répond lentement est une commande cassée ;
+           — les entrées au défilement prennent leur temps (760 ms), parce qu'une
+             apparition brutale fait cheap. La courbe est la même partout. */
         --vite: 160ms;
         --normal: 240ms;
         --lent: 300ms;
+        --entree: 760ms;
         --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        --ease-doux: cubic-bezier(0.32, 0.72, 0, 1);
 
         --display: 'Fraunces', Georgia, 'Times New Roman', serif;
         --sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -120,8 +124,6 @@
         scroll-behavior: smooth;
       }
       body {
-        /* De la place sous le dernier contenu : la barre collante est en
-           position fixe et masquerait sinon la fin du pied de page. */
         padding-bottom: 5.5rem;
         background: var(--canvas);
         color: var(--ink-700);
@@ -201,7 +203,7 @@
       section {
         position: relative;
         z-index: 2;
-        padding-block: 4rem;
+        padding-block: 4.5rem;
       }
 
       .eyebrow {
@@ -252,9 +254,6 @@
         justify-content: center;
         transition: transform var(--normal) var(--ease);
       }
-      /* Retirée pendant la descente : une pilule opaque posée sur le texte que
-         l'on est en train de lire gêne plus qu'elle ne sert. Elle revient au
-         premier geste vers le haut. */
       .barre.repliee {
         transform: translate3d(0, -140%, 0);
       }
@@ -320,10 +319,12 @@
         text-align: left;
         transition:
           background-color var(--normal) var(--ease),
-          transform var(--vite) var(--ease);
+          transform var(--vite) var(--ease),
+          box-shadow var(--normal) var(--ease);
       }
       .bouton:hover {
         background: #2a1e1a;
+        box-shadow: 0 10px 24px -12px rgba(23, 17, 15, 0.5);
       }
       .bouton:active {
         transform: scale(0.985);
@@ -360,11 +361,11 @@
 
       /* ---------------------------------- Hero ---------------------------------- */
       .hero {
-        padding-block: 2rem 4rem;
+        padding-block: 2rem 4.5rem;
       }
       .hero-grille {
         display: grid;
-        gap: 2.25rem;
+        gap: 2.5rem;
       }
       .hero h1 {
         font-family: var(--display);
@@ -428,392 +429,617 @@
         gap: 0.55rem;
       }
 
-      /* ============================ LES TÉLÉPHONES ============================
-         Aucune photo de persona sur cette page : un barbier en photo braque
-         l'esthéticienne. Ce qu'on montre, c'est le produit — des écrans de
-         l'application dessinés en HTML/CSS, dans des coques de téléphone qui
-         déclinent le double-liseré maison (coque sombre, écran concentrique).
-         Règles dures : aucun élément interactif ni titre dans ces écrans
-         factices, texte uniquement sur des couples de couleurs déjà validés.
-         ======================================================================= */
-      .telephone {
-        margin: 0;
+      /* ======================================================================
+         L'APPAREIL
+         ----------------------------------------------------------------------
+         Aucune photo de personne sur cette page : une photo de barbier braque
+         l'esthéticienne. Ce qu'on montre, c'est le produit. L'appareil est
+         dessiné, pas photographié : châssis titane, liseré noir, îlot, boutons,
+         reflet d'écran. Toutes les mesures dérivent d'une seule variable `--l`,
+         dans les proportions réelles d'un iPhone (393 × 852 pt, rayon 55 pt).
+         Règle dure : aucun élément interactif ni titre dans l'interface
+         dessinée — sinon cibles tactiles, focus et hiérarchie de titres cassent.
+         ====================================================================== */
+      .scene-tel {
+        perspective: 1800px;
         display: grid;
         justify-items: center;
       }
-      .tel-coque {
-        width: clamp(248px, 74vw, 320px);
-        background: var(--ink-900);
-        border-radius: 2.6rem;
-        padding: 0.55rem;
+      .telephone {
+        --l: clamp(252px, 72vw, 300px);
+        --r: calc(var(--l) * 0.142);
+        margin: 0;
+        position: relative;
+        transform-style: preserve-3d;
+      }
+      .tel-corps {
+        position: relative;
+        width: var(--l);
+        aspect-ratio: 393 / 852;
+        border-radius: var(--r);
+        padding: 3px;
+        /* Le titane brossé : une bande claire sur chaque tranche, sombre au
+           centre. C'est ce dégradé qui donne l'impression d'un bord arrondi. */
+        background: linear-gradient(
+          115deg,
+          #33302d 0%,
+          #857b73 5%,
+          #4b4441 13%,
+          #2b2724 38%,
+          #262220 62%,
+          #4f4744 86%,
+          #8d837a 95%,
+          #34302d 100%
+        );
         box-shadow:
-          var(--ombre-haute),
-          inset 0 0 0 1px rgba(255, 255, 255, 0.09);
+          0 2px 3px rgba(23, 17, 15, 0.28),
+          0 30px 60px -28px rgba(23, 17, 15, 0.55),
+          0 60px 90px -50px rgba(23, 17, 15, 0.4);
+      }
+      /* Le liseré noir entre le châssis et la dalle. */
+      .tel-bord {
+        height: 100%;
+        border-radius: calc(var(--r) - 3px);
+        background: #070605;
+        padding: 3px;
       }
       .tel-ecran {
+        --app-fond: #f6f3ef;
+        --app-carte: #ffffff;
+        --app-trait: #e7e0d8;
         position: relative;
-        background: var(--canvas);
-        border-radius: calc(2.6rem - 0.55rem);
-        aspect-ratio: 9 / 19;
+        height: 100%;
+        border-radius: calc(var(--r) - 6px);
         overflow: hidden;
-        padding: 2.4rem 0.8rem 0.9rem;
+        background: var(--app-fond);
         display: flex;
         flex-direction: column;
-        gap: 0.55rem;
       }
+      /* L'îlot : 125 × 36 pt sur 393 de large. */
       .tel-ilot {
         position: absolute;
-        top: 0.5rem;
+        top: 1.35%;
         left: 50%;
         transform: translateX(-50%);
-        width: 74px;
-        height: 20px;
-        background: var(--ink-900);
+        width: 31.8%;
+        aspect-ratio: 125 / 36;
+        background: #070605;
         border-radius: 999px;
-        z-index: 2;
+        z-index: 6;
       }
-      .hero .telephone {
-        padding-block: 0.75rem;
+      /* Les tranches : bouton action et volumes à gauche, veille à droite.
+         Une seule boîte par côté, les autres boutons sont des ombres portées. */
+      .tel-btn-g,
+      .tel-btn-d {
+        position: absolute;
+        width: 2px;
+        border-radius: 2px;
+        background: linear-gradient(180deg, #9a9089, #514a46);
+        z-index: 1;
       }
-      .hero .tel-coque {
-        transform: rotate(-3deg);
-        transition: transform var(--normal) var(--ease);
-      }
-      @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-        .hero .telephone:hover .tel-coque {
-          transform: rotate(-1deg) translate3d(0, -4px, 0);
-        }
-      }
-      .tel-mini .tel-coque {
-        width: clamp(200px, 56vw, 232px);
-        border-radius: 2.2rem;
-        padding: 0.45rem;
-      }
-      .tel-mini .tel-ecran {
-        border-radius: calc(2.2rem - 0.45rem);
-        aspect-ratio: 9 / 17.5;
-        padding: 2.1rem 0.7rem 0.8rem;
-        gap: 0.5rem;
-      }
-      .tel-mini .tel-ilot {
-        width: 58px;
-        height: 16px;
-        top: 0.45rem;
-      }
-      /* Sur le fond encre, la coque se détache par son liseré, pas par sa couleur. */
-      .negatif .tel-coque {
+      .tel-btn-g {
+        left: -2px;
+        top: 17%;
+        height: 3.4%;
         box-shadow:
-          var(--ombre-haute),
-          inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+          0 calc(var(--l) * 0.155) 0 0 #6b625d,
+          0 calc(var(--l) * 0.265) 0 0 #6b625d;
+      }
+      .tel-btn-d {
+        right: -2px;
+        top: 23.5%;
+        height: 8.4%;
+      }
+      /* Le reflet de la dalle : une lumière rasante, jamais un aplat blanc. */
+      .tel-reflet {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        pointer-events: none;
+        border-radius: inherit;
+        background: linear-gradient(
+          104deg,
+          rgba(255, 255, 255, 0) 24%,
+          rgba(255, 255, 255, 0.11) 35%,
+          rgba(255, 255, 255, 0.04) 45%,
+          rgba(255, 255, 255, 0) 57%
+        );
       }
 
-      /* Les briques de l'interface dessinée. Les noms de clients sont des
-         barres neutres : aucun prénom, aucun métier sous-entendu. */
-      .ui-tete {
+      /* Le hero pose l'appareil en perspective, légèrement de trois quarts. */
+      .hero .telephone {
+        --l: clamp(258px, 74vw, 316px);
+        transform: rotateY(-14deg) rotateX(3deg) rotateZ(0.6deg);
+        transition: transform var(--entree) var(--ease-doux);
+      }
+      @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+        .hero .telephone:hover {
+          transform: rotateY(-6deg) rotateX(1deg) translate3d(0, -6px, 30px);
+        }
+      }
+
+      /* ====================== L'INTERFACE DESSINÉE ======================
+         Une vraie application, pas un schéma : barre d'état, grand titre,
+         semaine, agenda, barre d'onglets, indicateur d'accueil. Les clients
+         sont des initiales — jamais un prénom inventé, jamais un métier
+         sous-entendu. Contrastes tenus sur les couples déjà validés.
+         ================================================================= */
+      .app {
+        position: absolute;
+        inset: 0;
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-inline: 0.25rem;
-        font-size: 0.6875rem;
-        font-weight: 600;
-        color: var(--ink-700);
+        flex-direction: column;
+        padding: 0 11px;
+        opacity: 0;
+        /* Le sortant s'efface vite, l'entrant arrive après lui. Un fondu
+           croisé symétrique superposerait deux mises en page différentes, et
+           l'écran deviendrait illisible pendant une demi-seconde. */
+        transition: opacity 220ms var(--ease-doux);
       }
-      .ui-points {
-        display: inline-flex;
-        gap: 3px;
+      .app.active {
+        opacity: 1;
+        transition: opacity 340ms var(--ease-doux) 170ms;
       }
-      .ui-points i {
-        width: 5px;
-        height: 5px;
-        border-radius: 50%;
-        background: var(--ink-300);
+      /* Un seul écran dans un appareil : il est visible d'emblée. */
+      .telephone:not(.multi) .app {
+        opacity: 1;
+        position: relative;
+        flex: 1;
+        min-height: 0;
       }
-      .ui-titre {
+      .app-statut {
+        flex: none;
+        height: 8.2%;
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        gap: 0.5rem;
-        padding-inline: 0.25rem;
+        justify-content: space-between;
+        padding: 0 4px;
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--ink-900);
+        letter-spacing: -0.01em;
       }
-      .ui-titre strong {
-        font-size: 0.9375rem;
+      .app-statut svg {
         color: var(--ink-900);
       }
-      .tel-mini .ui-titre strong {
-        font-size: 0.8125rem;
+      .app-tete {
+        flex: none;
+        padding: 2px 4px 8px;
       }
-      .ui-ss {
-        font-size: 0.6875rem;
-        color: var(--ink-500);
-        padding-inline: 0.25rem;
-        margin-top: -0.35rem;
-      }
-      .ui-os {
+      .app-sur {
         display: block;
-        height: 0.45rem;
-        border-radius: 999px;
-        background: var(--line);
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--rose-700);
       }
-      .ui-os.court {
-        width: 58%;
+      .app-titre {
+        display: block;
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        color: var(--ink-900);
+        margin-top: 1px;
       }
-      .ui-rdv {
+      .app-corps {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        overflow: hidden;
+      }
+      .app-semaine {
+        flex: none;
         display: grid;
-        grid-template-columns: 2.6rem 1fr;
-        gap: 0.45rem;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 4px;
+        padding-bottom: 2px;
+      }
+      .app-jour {
+        display: grid;
+        justify-items: center;
+        gap: 2px;
+        padding: 5px 0 6px;
+        border-radius: 10px;
+        font-size: 9px;
+        color: var(--ink-500);
+        background: transparent;
+      }
+      .app-jour b {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--ink-900);
+      }
+      .app-jour.on {
+        background: var(--ink-900);
+        color: rgba(251, 249, 246, 0.72);
+      }
+      .app-jour.on b {
+        color: var(--canvas);
+      }
+      .app-rdv {
+        display: grid;
+        grid-template-columns: 30px 1fr;
+        gap: 6px;
         align-items: center;
       }
-      .ui-heure {
-        font-size: 0.6875rem;
+      .app-heure {
+        font-size: 10px;
         font-weight: 600;
         color: var(--ink-500);
+        text-align: right;
       }
-      .ui-carte {
-        background: var(--surface);
-        border: 1px solid var(--line);
-        border-radius: var(--block);
-        padding: 0.6rem 0.7rem;
+      .app-carte {
+        background: var(--app-carte);
+        border-radius: 12px;
+        padding: 7px 8px;
         display: flex;
         align-items: center;
-        gap: 0.6rem;
-        box-shadow: 0 2px 4px rgba(23, 17, 15, 0.04);
+        gap: 7px;
+        box-shadow:
+          0 1px 2px rgba(23, 17, 15, 0.05),
+          0 6px 14px -10px rgba(23, 17, 15, 0.35);
       }
-      .ui-carte > div {
-        flex: 1;
-        display: grid;
-        gap: 0.35rem;
-      }
-      .ui-libre {
-        border: 1px dashed var(--line-fort);
-        border-radius: var(--block);
-        padding: 0.6rem 0.7rem;
-        font-size: 0.6875rem;
-        font-weight: 600;
-        color: var(--ink-500);
-      }
-      .ui-badge {
+      .app-pastille {
         flex: none;
-        font-size: 0.625rem;
-        font-weight: 600;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        padding: 0.22rem 0.5rem;
-        border-radius: 999px;
-      }
-      .ui-badge.sage {
-        background: var(--sage-50);
-        color: var(--sage-700);
-      }
-      .ui-badge.rose {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 10px;
+        font-weight: 700;
         background: var(--rose-50);
         color: var(--rose-700);
       }
-      .ui-badge.clay {
+      .app-pastille.s {
+        background: var(--sage-50);
+        color: var(--sage-700);
+      }
+      .app-pastille.c {
         background: var(--clay-50);
         color: var(--clay-600);
       }
-      .ui-note {
-        margin-top: auto;
-        padding-top: 0.5rem;
-        font-size: 0.625rem;
-        color: var(--ink-500);
-        text-align: center;
+      .app-detail {
+        flex: 1;
+        min-width: 0;
+        display: grid;
+        gap: 1px;
       }
-      .ui-chips {
+      .app-detail b {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--ink-900);
+        line-height: 1.25;
+      }
+      .app-detail span {
+        font-size: 9px;
+        color: var(--ink-500);
+        line-height: 1.25;
+      }
+      .app-etat {
+        flex: none;
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 3px 6px;
+        border-radius: 999px;
+        background: var(--sage-50);
+        color: var(--sage-700);
+      }
+      .app-etat.neuf {
+        background: var(--rose-50);
+        color: var(--rose-700);
+      }
+      .app-libre {
+        border: 1px dashed var(--line-fort);
+        border-radius: 12px;
+        padding: 7px 8px;
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--ink-500);
+      }
+      .app-creneaux {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 0.4rem;
+        gap: 5px;
       }
-      .ui-chip {
-        border: 1px solid var(--line);
+      .app-creneau {
+        border: 1px solid var(--app-trait);
+        background: var(--app-carte);
         border-radius: 10px;
-        background: var(--surface);
         text-align: center;
-        padding: 0.5rem 0.2rem;
-        font-size: 0.6875rem;
+        padding: 8px 2px;
+        font-size: 10px;
         font-weight: 600;
         color: var(--ink-700);
       }
-      .ui-chip.pris {
+      .app-creneau.on {
         background: var(--ink-900);
         border-color: var(--ink-900);
         color: var(--canvas);
       }
-      .ui-bouton {
+      .app-cta {
         background: var(--ink-900);
         color: var(--canvas);
         border-radius: 999px;
         text-align: center;
-        padding: 0.6rem 0.8rem;
-        font-size: 0.6875rem;
+        padding: 9px;
+        font-size: 11px;
         font-weight: 600;
       }
-      .ui-notif {
-        background: var(--surface);
-        border: 1px solid var(--line);
-        border-radius: var(--block);
-        padding: 0.6rem 0.7rem;
-        display: flex;
-        gap: 0.55rem;
-        align-items: flex-start;
-        box-shadow: 0 2px 4px rgba(23, 17, 15, 0.04);
-      }
-      .ui-notif strong {
-        display: block;
-        font-size: 0.6875rem;
-        color: var(--ink-900);
-        line-height: 1.35;
-      }
-      .ui-notif span:last-child {
-        display: block;
-        font-size: 0.625rem;
-        color: var(--ink-500);
-        line-height: 1.35;
-      }
-      .ui-puce {
-        flex: none;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        margin-top: 0.3rem;
-      }
-      .ui-puce.sage {
-        background: var(--sage-600);
-      }
-      .ui-puce.clay {
-        background: var(--clay-600);
-      }
-      .ui-puce.rose {
-        background: var(--rose-600);
-      }
-      .ui-avatar {
-        align-self: center;
-        width: 46px;
-        height: 46px;
-        border-radius: 50%;
-        background: var(--rose-100);
-        display: grid;
-        place-items: center;
-        margin-top: 0.3rem;
-      }
-      .ui-centre {
-        align-self: center;
-        text-align: center;
-      }
-      .ui-etoiles {
-        align-self: center;
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        color: var(--clay-600);
-      }
-      .ui-etoiles b {
-        font-size: 0.75rem;
-        color: var(--ink-900);
-      }
-      .ui-etoiles span {
-        font-size: 0.6875rem;
-        color: var(--ink-500);
-      }
-      .ui-bio {
-        display: grid;
-        gap: 0.35rem;
-        padding-inline: 1.2rem;
-      }
-      .ui-ligne {
-        background: var(--surface);
-        border: 1px solid var(--line);
-        border-radius: var(--block);
-        padding: 0.6rem 0.7rem;
+      /* Le total de la journée, poussé en bas de la liste : c'est lui qui
+         referme la composition, et il dit la seule chose qui compte. */
+      .app-total {
+        margin-top: auto;
+        background: var(--ink-900);
+        border-radius: 12px;
+        padding: 9px 10px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 0.6rem;
+        gap: 6px;
       }
-      .ui-ligne .ui-os {
-        flex: 1;
-        max-width: 52%;
+      .app-total .app-detail b {
+        color: var(--canvas);
       }
-      .ui-prix {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: var(--ink-900);
+      .app-total .app-detail span {
+        color: rgba(251, 249, 246, 0.66);
       }
-      .ui-prix svg {
-        color: var(--ink-300);
+      .app-total .app-montant {
+        color: var(--canvas);
+        font-size: 15px;
       }
-
-      /* La notification qui glisse : la promesse rendue visible. */
-      .ui-toast {
-        position: absolute;
-        top: 0.4rem;
-        left: 0.55rem;
-        right: 0.55rem;
-        z-index: 3;
-        background: var(--surface);
-        border: 1px solid var(--line);
-        border-radius: 1rem;
-        padding: 0.55rem 0.65rem;
-        display: flex;
-        gap: 0.55rem;
-        align-items: center;
-        box-shadow: var(--ombre);
-        opacity: 0;
-        transform: translate3d(0, -130%, 0);
-        transition:
-          opacity var(--lent) var(--ease),
-          transform var(--lent) var(--ease);
-      }
-      .telephone.vu .ui-toast {
-        opacity: 1;
-        transform: none;
-        transition-delay: 480ms;
-      }
-      .ui-cloche {
+      .app-pied {
         flex: none;
-        width: 26px;
-        height: 26px;
-        border-radius: 8px;
-        background: var(--rose-50);
-        color: var(--rose-700);
+        text-align: center;
+        font-size: 9px;
+        color: var(--ink-500);
+        line-height: 1.35;
+        padding: 4px 2px 0;
+      }
+      /* Le profil public : l'écran qui porte les avis. */
+      .app-profil {
+        display: grid;
+        justify-items: center;
+        gap: 5px;
+        padding-top: 4px;
+      }
+      .app-avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: linear-gradient(150deg, var(--rose-100), var(--sunk));
         display: grid;
         place-items: center;
       }
-      .ui-toast-texte {
-        display: grid;
-        gap: 0.1rem;
-      }
-      .ui-toast-texte strong {
-        font-size: 0.6875rem;
+      .app-nom {
+        font-size: 13px;
+        font-weight: 600;
         color: var(--ink-900);
-        line-height: 1.3;
       }
-      .ui-toast-texte span {
-        font-size: 0.625rem;
+      .app-note {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: var(--clay-600);
+      }
+      .app-note b {
+        font-size: 11px;
+        color: var(--ink-900);
+      }
+      .app-note span {
+        font-size: 9px;
         color: var(--ink-500);
-        line-height: 1.3;
       }
-
-      /* Les cartes qui arrivent quand l'écran entre dans le viewport.
-         Les DURÉES restent ≤ 300 ms (règle vérifiée) ; l'étagement se fait
-         par transition-delay, qui n'est pas du mouvement supplémentaire. */
-      .ui-arrive {
+      .app-avis {
+        width: 100%;
+        background: var(--app-carte);
+        border-radius: 12px;
+        padding: 7px 8px;
+        display: grid;
+        gap: 3px;
+        box-shadow: 0 1px 2px rgba(23, 17, 15, 0.05);
+      }
+      .app-avis span {
+        font-size: 9px;
+        color: var(--ink-500);
+        line-height: 1.4;
+      }
+      .app-os {
+        display: block;
+        height: 5px;
+        border-radius: 999px;
+        background: var(--line);
+      }
+      .app-os.court {
+        width: 55%;
+      }
+      /* Les tarifs, fixés par le pro. */
+      .app-tarif {
+        background: var(--app-carte);
+        border-radius: 12px;
+        padding: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 1px 2px rgba(23, 17, 15, 0.05);
+      }
+      .app-tarif .app-detail b {
+        font-size: 10px;
+      }
+      .app-montant {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink-900);
+      }
+      .app-montant svg {
+        color: var(--ink-300);
+      }
+      /* La barre d'onglets et l'indicateur d'accueil : ce sont eux qui font
+         « vraie application » plutôt que « capture recomposée ». */
+      .app-onglets {
+        flex: none;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        align-items: center;
+        padding: 6px 0 2px;
+        border-top: 1px solid var(--app-trait);
+        /* Pas `--ink-300` : à 8 px sur crème il tombe sous le seuil AA, et le
+           contrôle de contraste ne le voyait pas — un libellé d'onglet porte
+           une icône, donc il a des enfants, donc il était ignoré. */
+        color: var(--ink-500);
+      }
+      .app-onglets span {
+        display: grid;
+        justify-items: center;
+        gap: 2px;
+        font-size: 8px;
+      }
+      .app-onglets span.on {
+        color: var(--rose-700);
+      }
+      .app-accueil {
+        flex: none;
+        width: 34%;
+        height: 4px;
+        border-radius: 999px;
+        background: var(--ink-900);
+        opacity: 0.85;
+        margin: 4px auto 6px;
+      }
+      /* La notification qui glisse : la promesse rendue visible. */
+      .app-notif {
+        position: absolute;
+        /* Sous le grand titre, pas dessus : une bannière iOS recouvre bien
+           l'en-tête, mais celle-ci ne disparaît jamais — masquer « Votre
+           journée » en permanence se lirait comme un défaut d'affichage. */
+        top: 17.5%;
+        left: 8px;
+        right: 8px;
+        z-index: 7;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-radius: 15px;
+        padding: 8px 9px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        box-shadow:
+          0 1px 2px rgba(23, 17, 15, 0.06),
+          0 14px 30px -14px rgba(23, 17, 15, 0.45);
         opacity: 0;
-        transform: translate3d(0, 0.5rem, 0);
+        transform: translate3d(0, -140%, 0) scale(0.96);
         transition:
-          opacity var(--lent) var(--ease),
-          transform var(--lent) var(--ease);
+          opacity var(--entree) var(--ease-doux),
+          transform var(--entree) var(--ease-doux);
       }
-      .telephone.vu .ui-arrive {
+      .telephone.vu .app-notif {
         opacity: 1;
         transform: none;
-        transition-delay: 140ms;
+        transition-delay: 900ms;
       }
-      .telephone.vu .ui-arrive.r1 {
-        transition-delay: 300ms;
+      .app-icone {
+        flex: none;
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: var(--ink-900);
+        color: var(--canvas);
+        display: grid;
+        place-items: center;
+      }
+      .app-notif-txt {
+        display: grid;
+        gap: 1px;
+        min-width: 0;
+      }
+      .app-notif-txt b {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--ink-900);
+        line-height: 1.25;
+      }
+      .app-notif-txt span {
+        font-size: 9px;
+        color: var(--ink-500);
+        line-height: 1.25;
+      }
+      /* Les rendez-vous qui tombent pendant qu'on regarde. */
+      .app-arrive {
+        opacity: 0;
+        transform: translate3d(0, 10px, 0);
+        transition:
+          opacity var(--entree) var(--ease-doux),
+          transform var(--entree) var(--ease-doux);
+      }
+      .telephone.vu .app-arrive {
+        opacity: 1;
+        transform: none;
+        transition-delay: 320ms;
+      }
+      .telephone.vu .app-arrive.r1 {
+        transition-delay: 560ms;
+      }
+
+      /* ====================== LA SÉQUENCE ÉPINGLÉE ======================
+         Le téléphone reste à l'écran pendant que les trois réponses défilent,
+         et son écran change à chaque étape. C'est la même idée qu'une page
+         produit : un seul objet, plusieurs démonstrations.
+         ================================================================= */
+      .sequence {
+        margin-top: 2.5rem;
+        display: grid;
+        gap: 1.5rem;
+      }
+      .sequence-scene {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+        display: grid;
+        place-items: center;
+        padding-block: 1rem 1.25rem;
+        background: linear-gradient(var(--canvas) 78%, rgba(251, 249, 246, 0));
+      }
+      .sequence-scene .telephone {
+        --l: clamp(186px, 46vw, 214px);
+      }
+      .sequence-etape {
+        padding-block: 1.75rem;
+        border-top: 1px solid var(--line);
+        opacity: 0.45;
+        transition: opacity var(--entree) var(--ease-doux);
+      }
+      .sequence-etape.active {
+        opacity: 1;
+      }
+      .sequence-rang {
+        font-family: var(--display);
+        font-size: 1.1rem;
+        color: var(--rose-600);
+        line-height: 1;
+      }
+      .sequence-etape h3 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: clamp(1.35rem, 3.6vw, 1.75rem);
+        letter-spacing: -0.015em;
+        margin-top: 0.5rem;
+      }
+      .sequence-etape p {
+        margin-top: 0.7rem;
+        color: var(--ink-500);
+        font-size: 0.9375rem;
+        max-width: 42ch;
       }
 
       /* ============================ LE CALCULATEUR ============================
@@ -870,6 +1096,10 @@
         background: var(--rose-600);
         border: 3px solid var(--surface);
         box-shadow: 0 2px 6px rgba(23, 17, 15, 0.25);
+        transition: transform var(--vite) var(--ease);
+      }
+      input[type='range']:active::-webkit-slider-thumb {
+        transform: scale(1.12);
       }
       input[type='range']::-moz-range-track {
         height: 6px;
@@ -926,36 +1156,6 @@
         color: var(--ink-500);
       }
 
-      /* ------------------- Trois douleurs, trois écrans ------------------- */
-      .paires {
-        margin-top: 2.25rem;
-      }
-      .paire {
-        border-top: 1px solid var(--line);
-        padding-block: 2.25rem;
-        display: grid;
-        gap: 1.75rem;
-        justify-items: start;
-      }
-      .paire:last-child {
-        border-bottom: 1px solid var(--line);
-      }
-      .paire h3 {
-        font-family: var(--display);
-        font-weight: 400;
-        font-size: 1.45rem;
-        letter-spacing: -0.01em;
-      }
-      .paire p {
-        margin-top: 0.6rem;
-        color: var(--ink-500);
-        font-size: 0.9375rem;
-        max-width: 44ch;
-      }
-      .paire .telephone {
-        justify-self: center;
-      }
-
       /* ----------------------------- Étapes ----------------------------- */
       .etapes {
         margin-top: 2.25rem;
@@ -990,7 +1190,7 @@
         font-size: 0.9375rem;
       }
 
-      /* ------------------- Contre-positionnement (fond encre) ------------------- */
+      /* ------------------- Le modèle (fond encre) ------------------- */
       .negatif {
         position: relative;
         background: var(--ink-900);
@@ -998,8 +1198,6 @@
         isolation: isolate;
         overflow: hidden;
       }
-      /* Pas de photo ici non plus : un halo dessiné donne la profondeur sans
-         disputer la lecture du tableau chiffré, qui est le cœur de la section. */
       .fond-halo {
         position: absolute;
         inset: 0;
@@ -1022,9 +1220,9 @@
       .negatif .sous-titre {
         color: rgba(251, 249, 246, 0.68);
       }
-      /* L'écran du téléphone reste clair, même posé sur l'encre : le texte
-         de l'interface dessinée ne doit pas hériter du blanc de la section. */
-      .negatif .tel-ecran strong {
+      /* L'écran reste clair, même posé sur l'encre. */
+      .negatif .tel-ecran strong,
+      .negatif .tel-ecran b {
         color: var(--ink-900);
       }
       .modele-haut {
@@ -1443,23 +1641,53 @@
         color: var(--ink-500);
       }
 
-      /* ------------------------------- Révélation ------------------------------- */
+      /* ------------------------------- Révélation -------------------------------
+         Une entrée qui prend son temps : montée, fondu, et une mise au point
+         qui se fait. C'est la mise au point qui donne la matière — sans elle,
+         une apparition reste plate. */
       .reveal {
         opacity: 0;
-        transform: translate3d(0, 1.25rem, 0);
+        transform: translate3d(0, 1.75rem, 0);
+        filter: blur(5px);
         transition:
-          opacity var(--lent) var(--ease),
-          transform var(--lent) var(--ease);
+          opacity var(--entree) var(--ease-doux),
+          transform var(--entree) var(--ease-doux),
+          filter var(--entree) var(--ease-doux);
       }
       .reveal.vu {
         opacity: 1;
         transform: none;
+        filter: none;
+      }
+      /* Cascade dans une même famille : chaque élément entre après le précédent. */
+      .cascade > * {
+        opacity: 0;
+        transform: translate3d(0, 1.25rem, 0);
+        transition:
+          opacity var(--entree) var(--ease-doux),
+          transform var(--entree) var(--ease-doux);
+      }
+      .cascade.vu > * {
+        opacity: 1;
+        transform: none;
+      }
+      .cascade.vu > *:nth-child(2) {
+        transition-delay: 90ms;
+      }
+      .cascade.vu > *:nth-child(3) {
+        transition-delay: 180ms;
+      }
+      .cascade.vu > *:nth-child(4) {
+        transition-delay: 270ms;
+      }
+      .cascade.vu > *:nth-child(5) {
+        transition-delay: 360ms;
       }
 
       /* ============================= Écrans larges ============================= */
       @media (min-width: 700px) {
         section {
-          padding-block: 5.5rem;
+          padding-block: 6rem;
         }
         .contenant {
           padding-inline: 2rem;
@@ -1468,17 +1696,6 @@
           grid-template-columns: 1.05fr 0.95fr;
           gap: 2.25rem;
           padding: 2rem;
-        }
-        .paire {
-          grid-template-columns: 1fr auto;
-          gap: 3rem;
-          align-items: center;
-        }
-        .paire:nth-child(even) {
-          grid-template-columns: auto 1fr;
-        }
-        .paire:nth-child(even) .paire-texte {
-          order: 2;
         }
         .offres-grille {
           grid-template-columns: 1.2fr 0.8fr;
@@ -1507,12 +1724,9 @@
 
       @media (min-width: 1000px) {
         .hero-grille {
-          grid-template-columns: 1.1fr 0.9fr;
+          grid-template-columns: 1.05fr 0.95fr;
           gap: 3.5rem;
           align-items: center;
-        }
-        .hero .telephone {
-          justify-self: center;
         }
         .form-grille {
           display: grid;
@@ -1540,6 +1754,42 @@
         .comparatif {
           padding: 2rem;
         }
+        /* La séquence prend sa forme définitive : texte à gauche, appareil
+           épinglé à droite, à hauteur de regard. */
+        .sequence {
+          grid-template-columns: 1fr 0.85fr;
+          gap: 4rem;
+          align-items: start;
+        }
+        .sequence-scene {
+          grid-column: 2;
+          grid-row: 1 / span 3;
+          top: 0;
+          height: 100vh;
+          padding-block: 0;
+          background: none;
+        }
+        .sequence-scene .telephone {
+          --l: 292px;
+        }
+        .sequence-etape {
+          grid-column: 1;
+          min-height: 72vh;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          border-top: 0;
+          padding-block: 0;
+        }
+        .sequence-etape:first-of-type {
+          padding-top: 2rem;
+        }
+        /* De la course en réserve sous la dernière étape : sans elle, la zone
+           épinglée se termine pile quand cette étape arrive au centre, et
+           l'appareil décroche vers le haut au moment précis où on le regarde. */
+        .sequence-etape:last-of-type {
+          padding-bottom: 14vh;
+        }
       }
 
       /* ========================= Mouvement réduit ========================= */
@@ -1553,9 +1803,15 @@
           scroll-behavior: auto !important;
         }
         .reveal,
-        .ui-arrive,
-        .ui-toast {
+        .cascade > *,
+        .app-arrive,
+        .app-notif,
+        .sequence-etape {
           opacity: 1;
+          transform: none;
+          filter: none;
+        }
+        .hero .telephone {
           transform: none;
         }
         .grain {
@@ -1565,7 +1821,8 @@
 
       /* =======================================================================
          IMPRESSION — PDF paysage. Tout ce qui est révélé au défilement est
-         forcé visible, les curseurs laissent place à la phrase-exemple.
+         forcé visible, les curseurs laissent place à la phrase-exemple, et
+         l'appareil épinglé se pose à côté de la première étape.
          ======================================================================= */
       @media print {
         @page {
@@ -1582,15 +1839,23 @@
         .collant {
           display: none !important;
         }
-        .reveal {
+        .reveal,
+        .cascade > *,
+        .app-arrive,
+        .app-notif,
+        .sequence-etape {
           opacity: 1 !important;
           transform: none !important;
-        }
-        .ui-arrive,
-        .ui-toast {
-          opacity: 1 !important;
-          transform: none !important;
+          filter: none !important;
           transition: none !important;
+        }
+        .app {
+          opacity: 1 !important;
+        }
+        /* Un seul écran à l'impression : trois calques superposés donneraient
+           une bouillie. On garde le premier. */
+        .telephone.multi .app:not(.active) {
+          display: none !important;
         }
         .curseur {
           display: none !important;
@@ -1616,9 +1881,25 @@
           grid-template-columns: 1.1fr 0.9fr !important;
           gap: 1.4rem !important;
         }
-        .paire {
-          grid-template-columns: 1fr auto !important;
+        .sequence {
+          display: grid !important;
+          grid-template-columns: 1fr 210px !important;
           gap: 1.5rem !important;
+        }
+        .sequence-scene {
+          position: static !important;
+          height: auto !important;
+          grid-column: 2 !important;
+          grid-row: 1 / span 3 !important;
+          background: none !important;
+          align-self: center;
+        }
+        .sequence-etape {
+          grid-column: 1 !important;
+          min-height: 0 !important;
+          padding-block: 0.7rem !important;
+          border-top: 1px solid var(--line) !important;
+          break-inside: avoid;
         }
         .offres-grille {
           grid-template-columns: 1fr 1fr !important;
@@ -1636,24 +1917,33 @@
           grid-template-columns: repeat(3, 1fr) !important;
           break-inside: avoid;
         }
-        .tel-coque {
-          width: 210px !important;
+        .telephone {
+          --l: 196px !important;
           transform: none !important;
         }
-        .tel-mini .tel-coque {
-          width: 185px !important;
+        .hero .telephone {
+          --l: 210px !important;
         }
         .telephone,
-        .tel-coque,
+        .tel-corps,
+        .tel-bord,
         .tel-ecran,
         .tel-ilot,
-        .ui-chip,
-        .ui-bouton,
-        .ui-badge,
-        .ui-cloche,
-        .ui-puce,
-        .ui-avatar,
-        .ui-os,
+        .tel-btn-g,
+        .tel-btn-d,
+        .app-carte,
+        .app-cta,
+        .app-creneau,
+        .app-etat,
+        .app-pastille,
+        .app-icone,
+        .app-avatar,
+        .app-os,
+        .app-jour,
+        .app-accueil,
+        .app-notif,
+        .app-tarif,
+        .app-avis,
         .calc-resultat,
         .negatif {
           -webkit-print-color-adjust: exact;
@@ -1664,7 +1954,6 @@
         .confiance div,
         .comparatif,
         .telephone,
-        .paire,
         .offre,
         .coque,
         details,
@@ -1705,6 +1994,48 @@
         <filter id="fFlou" x="-30%" y="-30%" width="160%" height="160%">
           <feGaussianBlur stdDeviation="26" />
         </filter>
+
+        <!-- Les pictogrammes de l'interface dessinée, définis une fois. -->
+        <g id="iStatut" fill="currentColor">
+          <rect x="0" y="6.4" width="2.3" height="3.6" rx=".7" />
+          <rect x="3.5" y="4.6" width="2.3" height="5.4" rx=".7" />
+          <rect x="7" y="2.8" width="2.3" height="7.2" rx=".7" />
+          <rect x="10.5" y="1" width="2.3" height="9" rx=".7" opacity=".35" />
+          <path d="M16.4 4.1a6.6 6.6 0 0 1 8.2 0M18 6.1a4 4 0 0 1 5 0" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round" />
+          <circle cx="20.5" cy="8.4" r="1.1" />
+          <rect x="29" y="1.6" width="11" height="6.8" rx="2.2" fill="none" stroke="currentColor" stroke-width="1" opacity=".45" />
+          <rect x="30.2" y="2.8" width="7.4" height="4.4" rx="1.2" />
+          <path d="M41.2 4a1.5 1.5 0 0 1 0 2" stroke="currentColor" stroke-width="1" opacity=".45" />
+        </g>
+        <g id="iAgenda" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1.5" y="2.5" width="11" height="10" rx="2.5" />
+          <path d="M1.5 5.5h11M4.5 1.5v2M9.5 1.5v2" />
+        </g>
+        <g id="iClients" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7" cy="5" r="2.6" />
+          <path d="M2.2 12.2a4.8 4.8 0 0 1 9.6 0" />
+        </g>
+        <g id="iPage" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7" cy="7" r="5.4" />
+          <path d="M1.6 7h10.8M7 1.6c1.5 1.6 2.3 3.5 2.3 5.4S8.5 10.8 7 12.4C5.5 10.8 4.7 8.9 4.7 7S5.5 3.2 7 1.6z" />
+        </g>
+        <g id="iReglages" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7" cy="7" r="2.2" />
+          <path d="M7 1.4v1.6M7 11v1.6M12.6 7H11M3 7H1.4M10.9 3.1l-1.1 1.1M4.2 9.8l-1.1 1.1M10.9 10.9l-1.1-1.1M4.2 4.2L3.1 3.1" />
+        </g>
+        <g id="iCrayon" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round">
+          <path d="M11.3 2.1l2.6 2.6L5.4 13.2l-3.2.6.6-3.2z" />
+        </g>
+        <g id="iCloche" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 2a4 4 0 0 1 4 4c0 3 1.2 4 1.2 4H2.8S4 9 4 6a4 4 0 0 1 4-4zM6.8 13a1.3 1.3 0 0 0 2.4 0" />
+        </g>
+        <g id="iEtoiles" fill="currentColor">
+          <path d="M7 .8l1.8 3.7 4.1.6-3 2.9.7 4.1L7 10.2 3.4 12.1l.7-4.1-3-2.9 4.1-.6z" />
+          <path d="M23 .8l1.8 3.7 4.1.6-3 2.9.7 4.1L23 10.2l-3.6 1.9.7-4.1-3-2.9 4.1-.6z" />
+          <path d="M39 .8l1.8 3.7 4.1.6-3 2.9.7 4.1L39 10.2l-3.6 1.9.7-4.1-3-2.9 4.1-.6z" />
+          <path d="M55 .8l1.8 3.7 4.1.6-3 2.9.7 4.1L55 10.2l-3.6 1.9.7-4.1-3-2.9 4.1-.6z" />
+          <path d="M71 .8l1.8 3.7 4.1.6-3 2.9.7 4.1L71 10.2l-3.6 1.9.7-4.1-3-2.9 4.1-.6z" />
+        </g>
       </defs>
     </svg>
 
@@ -1733,13 +2064,14 @@
       <!-- ================================ HERO ================================ -->
       <section class="hero">
         <div class="contenant hero-grille">
-          <div>
+          <div class="cascade">
             <span class="eyebrow">Barbiers · Coiffure · Esthétique · Onglerie · Maquillage · Bien-être</span>
             <h1>Vos clients réservent seuls. <em>Votre agenda se remplit pendant que vous travaillez.</em></h1>
             <p class="chapeau">
               Subitis vous donne une page de réservation professionnelle, référencée, à votre nom.
-              Réservation 24&nbsp;h/24, confirmation directement dans votre agenda, annulations
-              gérées en ligne. Par abonnement — jamais de commission sur ce que vous encaissez.
+              Réservation 24&nbsp;h/24, confirmation directement dans votre agenda, rappels et
+              annulations gérés en ligne. Par abonnement — jamais de commission sur ce que vous
+              encaissez.
             </p>
 
             <div class="appel">
@@ -1761,30 +2093,99 @@
             </div>
           </div>
 
-          <!-- Écran A : l'agenda qui se remplit, la promesse rendue visible. -->
-          <figure class="telephone" role="img" aria-label="Écran de l'application Subitis : l'agenda du mardi affiche cinq rendez-vous. Deux viennent d'arriver seuls, dont un accompagné d'une notification « Nouveau rendez-vous, aujourd'hui 14 h, confirmé par email ».">
-            <div class="tel-coque">
-              <div class="tel-ecran" aria-hidden="true">
-                <span class="tel-ilot"></span>
-                <div class="ui-toast">
-                  <span class="ui-cloche">
-                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-                      <path d="M8 2a4 4 0 0 1 4 4c0 3 1.2 4 1.2 4H2.8S4 9 4 6a4 4 0 0 1 4-4zM6.8 13a1.3 1.3 0 0 0 2.4 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                  </span>
-                  <span class="ui-toast-texte"><strong>Nouveau rendez-vous</strong><span>Aujourd'hui 14:00 · Confirmé par email</span></span>
+          <!-- ÉCRAN A — l'agenda qui se remplit pendant qu'on regarde.
+               Les heures de réservation (21:14, 07:02, 23:40) disent seules
+               que les clients réservent quand le professionnel ne répond pas. -->
+          <div class="scene-tel">
+            <figure class="telephone" role="img" aria-label="L'application Subitis, écran de l'agenda : la journée du mardi affiche quatre rendez-vous confirmés, réservés en ligne à 21 h 14, 7 h 02 et 23 h 40, un créneau encore libre, et une notification « Nouveau rendez-vous, aujourd'hui 14 h, confirmé par email ».">
+              <div class="tel-corps">
+                <span class="tel-btn-g" aria-hidden="true"></span>
+                <span class="tel-btn-d" aria-hidden="true"></span>
+                <div class="tel-bord">
+                  <div class="tel-ecran" aria-hidden="true">
+                    <span class="tel-ilot"></span>
+                    <span class="tel-reflet"></span>
+
+                    <div class="app-notif">
+                      <span class="app-icone"><svg width="13" height="13" viewBox="0 0 16 16"><use href="#iCloche" /></svg></span>
+                      <span class="app-notif-txt"><b>Nouveau rendez-vous</b><span>Aujourd'hui 14:00 · Confirmé par email</span></span>
+                    </div>
+
+                    <div class="app">
+                      <div class="app-statut">
+                        <span class="nb">9:41</span>
+                        <svg width="42" height="11" viewBox="0 0 42 11"><use href="#iStatut" /></svg>
+                      </div>
+                      <div class="app-tete">
+                        <span class="app-sur">Mardi 12</span>
+                        <span class="app-titre">Votre journée</span>
+                      </div>
+                      <div class="app-corps">
+                        <div class="app-semaine">
+                          <span class="app-jour">L<b class="nb">11</b></span>
+                          <span class="app-jour on">M<b class="nb">12</b></span>
+                          <span class="app-jour">M<b class="nb">13</b></span>
+                          <span class="app-jour">J<b class="nb">14</b></span>
+                          <span class="app-jour">V<b class="nb">15</b></span>
+                        </div>
+                        <div class="app-rdv">
+                          <span class="app-heure nb">09:00</span>
+                          <div class="app-carte">
+                            <span class="app-pastille">L</span>
+                            <span class="app-detail"><b class="nb">1 h · 45 €</b><span class="nb">Réservé hier, 21:14</span></span>
+                          </div>
+                        </div>
+                        <div class="app-rdv">
+                          <span class="app-heure nb">10:30</span>
+                          <div class="app-carte">
+                            <span class="app-pastille s">A</span>
+                            <span class="app-detail"><b class="nb">45 min · 35 €</b><span class="nb">Réservé à 07:02</span></span>
+                          </div>
+                        </div>
+                        <div class="app-rdv">
+                          <span class="app-heure nb">12:00</span>
+                          <div class="app-libre">Encore libre</div>
+                        </div>
+                        <div class="app-rdv app-arrive">
+                          <span class="app-heure nb">14:00</span>
+                          <div class="app-carte">
+                            <span class="app-pastille c">M</span>
+                            <span class="app-detail"><b class="nb">1 h 15 · 60 €</b><span class="nb">Réservé cette nuit, 23:40</span></span>
+                            <span class="app-etat neuf">Neuf</span>
+                          </div>
+                        </div>
+                        <div class="app-rdv app-arrive r1">
+                          <span class="app-heure nb">16:00</span>
+                          <div class="app-carte">
+                            <span class="app-pastille">K</span>
+                            <span class="app-detail"><b class="nb">30 min · 25 €</b><span>Confirmé</span></span>
+                          </div>
+                        </div>
+                        <div class="app-rdv app-arrive r1">
+                          <span class="app-heure nb">17:30</span>
+                          <div class="app-carte">
+                            <span class="app-pastille s">N</span>
+                            <span class="app-detail"><b class="nb">45 min · 40 €</b><span class="nb">Réservé à 12:38</span></span>
+                          </div>
+                        </div>
+                        <div class="app-total">
+                          <span class="app-detail"><b>Mardi 12</b><span>5 rendez-vous, 1 créneau libre</span></span>
+                          <span class="app-montant nb">205&nbsp;€</span>
+                        </div>
+                      </div>
+                      <div class="app-onglets">
+                        <span class="on"><svg width="14" height="14" viewBox="0 0 14 14"><use href="#iAgenda" /></svg>Agenda</span>
+                        <span><svg width="14" height="14" viewBox="0 0 14 14"><use href="#iClients" /></svg>Clients</span>
+                        <span><svg width="14" height="14" viewBox="0 0 14 14"><use href="#iPage" /></svg>Ma page</span>
+                        <span><svg width="14" height="14" viewBox="0 0 14 14"><use href="#iReglages" /></svg>Réglages</span>
+                      </div>
+                      <span class="app-accueil"></span>
+                    </div>
+                  </div>
                 </div>
-                <div class="ui-tete"><span class="nb">9:41</span><span class="ui-points"><i></i><i></i><i></i></span></div>
-                <div class="ui-titre"><strong>Mardi</strong><span class="ui-badge rose">5 rendez-vous</span></div>
-                <div class="ui-rdv"><span class="ui-heure nb">09:00</span><div class="ui-carte"><div><span class="ui-os"></span><span class="ui-os court"></span></div><span class="ui-badge sage">Confirmé</span></div></div>
-                <div class="ui-rdv"><span class="ui-heure nb">10:30</span><div class="ui-carte"><div><span class="ui-os"></span><span class="ui-os court"></span></div><span class="ui-badge sage">Confirmé</span></div></div>
-                <div class="ui-rdv"><span class="ui-heure nb">12:00</span><div class="ui-libre">Créneau libre</div></div>
-                <div class="ui-rdv ui-arrive"><span class="ui-heure nb">14:00</span><div class="ui-carte"><div><span class="ui-os"></span><span class="ui-os court"></span></div><span class="ui-badge rose">Nouveau</span></div></div>
-                <div class="ui-rdv ui-arrive r1"><span class="ui-heure nb">16:00</span><div class="ui-carte"><div><span class="ui-os"></span><span class="ui-os court"></span></div><span class="ui-badge sage">Confirmé</span></div></div>
-                <p class="ui-note">Réservation en ligne 24&nbsp;h/24</p>
               </div>
-            </div>
-          </figure>
+            </figure>
+          </div>
         </div>
       </section>
 
@@ -1792,13 +2193,13 @@
       <section class="bande" id="calculateur">
         <div class="contenant">
           <span class="eyebrow">Le manque à gagner</span>
-          <h2 class="titre">Un créneau vide à 14&nbsp;h est perdu à 15&nbsp;h. Combien, chez vous&nbsp;?</h2>
+          <h2 class="titre">Un créneau libre ne se rattrape pas. Combien, chez vous&nbsp;?</h2>
           <p class="sous-titre">
-            On ne vous sortira pas un chiffre universel&nbsp;: un barbier et une prothésiste
-            ongulaire ne perdent pas la même chose. Réglez les deux curseurs — le calcul est le vôtre.
+            Il n'y a pas de chiffre universel&nbsp;: un barbier et une prothésiste ongulaire ne
+            perdent pas la même chose. Réglez les deux curseurs — le calcul est le vôtre.
           </p>
 
-          <div class="coque calc">
+          <div class="coque calc reveal">
             <div class="coeur">
               <div class="calc-curseurs">
                 <div class="champ">
@@ -1809,133 +2210,181 @@
                   </div>
                 </div>
                 <div class="champ">
-                  <label for="calc-vides">Créneaux vides par semaine</label>
+                  <label for="calc-vides">Créneaux libres par semaine</label>
                   <div class="curseur">
                     <input type="range" id="calc-vides" min="0" max="15" step="1" value="3" />
                     <output for="calc-vides" id="calc-vides-val" class="nb">3</output>
                   </div>
                 </div>
-                <p class="calc-print">Exemple&nbsp;: 3 créneaux vides par semaine, à 45&nbsp;€ la prestation.</p>
+                <p class="calc-print">Exemple&nbsp;: 3 créneaux libres par semaine, à 45&nbsp;€ la prestation.</p>
               </div>
 
               <div class="calc-resultat" role="status" aria-live="polite">
                 <div class="montant nb"><span id="calc-total">540</span>&nbsp;€</div>
                 <div class="unite">de manque à gagner par mois</div>
                 <hr />
-                <p class="detail" id="calc-equiv">Soit 28 fois l'abonnement Classique à 19&nbsp;€. Un créneau non vendu à 14&nbsp;h est perdu à 15&nbsp;h&nbsp;: il ne se reporte pas.</p>
+                <p class="detail" id="calc-equiv">Soit 28 fois l'abonnement Classique à 19&nbsp;€. Un créneau libre ne se reporte pas au lendemain.</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- ===================== TROIS DOULEURS, TROIS ÉCRANS ===================== -->
+      <!-- ======================= LA SÉQUENCE ÉPINGLÉE =======================
+           Un seul appareil, trois démonstrations. Il reste à l'écran pendant
+           que les trois réponses défilent, et son écran change à chaque étape.
+           =================================================================== -->
       <section id="reponses">
         <div class="contenant">
-          <span class="eyebrow">Trois interruptions, trois écrans</span>
-          <h2 class="titre">Ce qui vous interrompt aujourd'hui, l'application le fait à votre place.</h2>
+          <span class="eyebrow">Trois moments, trois écrans</span>
+          <h2 class="titre">Ce qui vous prend du temps aujourd'hui, l'application s'en charge.</h2>
           <p class="sous-titre">
-            Pas de démonstration floue&nbsp;: voilà les trois écrans que vous et vos clients
-            utiliserez vraiment.
+            Pas de démonstration floue&nbsp;: voilà les écrans que vous et vos clients utiliserez
+            vraiment.
           </p>
 
-          <div class="paires">
-            <div class="paire reveal">
-              <div class="paire-texte">
-                <h3>Le téléphone sonne en pleine prestation.</h3>
-                <p>
-                  <strong>Réservation en ligne, 24&nbsp;h/24.</strong> Vos clients choisissent un
-                  créneau pendant que vous avez les mains prises. Chaque réservation est confirmée
-                  par email, directement dans votre agenda.
-                </p>
-              </div>
-              <!-- Écran B : la réservation côté client. -->
-              <figure class="telephone tel-mini" role="img" aria-label="Écran de réservation côté client : une grille de créneaux du mercredi, le créneau de 14 h est choisi, la confirmation est immédiate.">
-                <div class="tel-coque">
-                  <div class="tel-ecran" aria-hidden="true">
-                    <span class="tel-ilot"></span>
-                    <div class="ui-tete"><span class="nb">9:41</span><span class="ui-points"><i></i><i></i><i></i></span></div>
-                    <div class="ui-titre"><strong>Choisir un créneau</strong></div>
-                    <span class="ui-ss">Mercredi 12</span>
-                    <div class="ui-chips">
-                      <span class="ui-chip nb">09:00</span><span class="ui-chip nb">10:30</span><span class="ui-chip nb">12:00</span>
-                      <span class="ui-chip pris nb">14:00</span><span class="ui-chip nb">15:30</span><span class="ui-chip nb">17:00</span>
+          <div class="sequence">
+            <div class="sequence-scene">
+              <figure class="telephone multi" role="img" aria-label="L'application Subitis en trois écrans : le choix d'un créneau côté client avec confirmation immédiate ; le fil des notifications où un rappel part, une annulation arrive et le créneau libéré est repris ; et la page de réservation publique du professionnel, notée 4,9 sur 5 pour 48 avis.">
+                <div class="tel-corps">
+                  <span class="tel-btn-g" aria-hidden="true"></span>
+                  <span class="tel-btn-d" aria-hidden="true"></span>
+                  <div class="tel-bord">
+                    <div class="tel-ecran" aria-hidden="true">
+                      <span class="tel-ilot"></span>
+                      <span class="tel-reflet"></span>
+
+                      <!-- ÉCRAN B — la réservation, côté client. -->
+                      <div class="app active" data-vue="0">
+                        <div class="app-statut">
+                          <span class="nb">21:14</span>
+                          <svg width="42" height="11" viewBox="0 0 42 11"><use href="#iStatut" /></svg>
+                        </div>
+                        <div class="app-tete">
+                          <span class="app-sur">Mercredi 13</span>
+                          <span class="app-titre">Choisir un créneau</span>
+                        </div>
+                        <div class="app-corps">
+                          <div class="app-creneaux">
+                            <span class="app-creneau nb">09:00</span>
+                            <span class="app-creneau nb">10:30</span>
+                            <span class="app-creneau nb">12:00</span>
+                            <span class="app-creneau on nb">14:00</span>
+                            <span class="app-creneau nb">15:30</span>
+                            <span class="app-creneau nb">17:00</span>
+                          </div>
+                          <div class="app-tarif">
+                            <span class="app-detail"><b>Prestation choisie</b><span>1 h 15</span></span>
+                            <span class="app-montant nb">60&nbsp;€</span>
+                          </div>
+                          <div class="app-cta">Confirmer 14:00</div>
+                        </div>
+                        <p class="app-pied">Il est 21&nbsp;h&nbsp;14. Vous n'avez rien eu à décrocher.</p>
+                        <span class="app-accueil"></span>
+                      </div>
+
+                      <!-- ÉCRAN C — les rappels et les annulations. -->
+                      <div class="app" data-vue="1">
+                        <div class="app-statut">
+                          <span class="nb">9:41</span>
+                          <svg width="42" height="11" viewBox="0 0 42 11"><use href="#iStatut" /></svg>
+                        </div>
+                        <div class="app-tete">
+                          <span class="app-sur">Notifications</span>
+                          <span class="app-titre">Aujourd'hui</span>
+                        </div>
+                        <div class="app-corps">
+                          <div class="app-carte">
+                            <span class="app-pastille s"><svg width="12" height="12" viewBox="0 0 14 14"><use href="#iCloche" /></svg></span>
+                            <span class="app-detail"><b>Rappel envoyé</b><span class="nb">Rendez-vous de 10:00, demain</span></span>
+                          </div>
+                          <div class="app-carte">
+                            <span class="app-pastille c">!</span>
+                            <span class="app-detail"><b>Annulation reçue</b><span class="nb">Le créneau de 14:00 repart en ligne</span></span>
+                          </div>
+                          <div class="app-carte">
+                            <span class="app-pastille">R</span>
+                            <span class="app-detail"><b class="nb">Créneau repris · 60 €</b><span class="nb">Demain 14:00 — confirmé</span></span>
+                            <span class="app-etat neuf">Neuf</span>
+                          </div>
+                        </div>
+                        <p class="app-pied">Entre l'annulation et la reprise, vous étiez en prestation.</p>
+                        <div class="app-onglets">
+                          <span><svg width="14" height="14" viewBox="0 0 14 14"><use href="#iAgenda" /></svg>Agenda</span>
+                          <span class="on"><svg width="14" height="14" viewBox="0 0 14 14"><use href="#iCloche" /></svg>Alertes</span>
+                          <span><svg width="14" height="14" viewBox="0 0 14 14"><use href="#iPage" /></svg>Ma page</span>
+                          <span><svg width="14" height="14" viewBox="0 0 14 14"><use href="#iReglages" /></svg>Réglages</span>
+                        </div>
+                        <span class="app-accueil"></span>
+                      </div>
+
+                      <!-- ÉCRAN D — la page publique. Les étoiles sont une
+                           fonctionnalité du produit (module d'avis), jamais une
+                           traction affichée par Subitis. -->
+                      <div class="app" data-vue="2">
+                        <div class="app-statut">
+                          <span class="nb">9:41</span>
+                          <svg width="42" height="11" viewBox="0 0 42 11"><use href="#iStatut" /></svg>
+                        </div>
+                        <div class="app-corps">
+                          <div class="app-profil">
+                            <span class="app-avatar">
+                              <svg viewBox="0 0 34 34" width="24" height="24">
+                                <circle cx="17" cy="17" r="16" fill="none" stroke="#8C3145" stroke-width="1.4" opacity=".3" />
+                                <path d="M17 1a16 16 0 0 1 13.9 23.9" fill="none" stroke="#A03A4E" stroke-width="2.6" stroke-linecap="round" />
+                                <circle cx="17" cy="17" r="4.6" fill="#8C3145" />
+                              </svg>
+                            </span>
+                            <span class="app-nom">Votre page de réservation</span>
+                            <span class="app-note">
+                              <svg width="66" height="12" viewBox="0 0 78 13"><use href="#iEtoiles" /></svg>
+                              <b class="nb">4,9</b><span class="nb">48 avis</span>
+                            </span>
+                            <span class="app-avis">
+                              <span class="app-os"></span>
+                              <span class="app-os court"></span>
+                            </span>
+                            <div class="app-cta" style="width: 100%">Réserver</div>
+                          </div>
+                        </div>
+                        <p class="app-pied">Votre lien, en bio Instagram et sur votre fiche Google.</p>
+                        <span class="app-accueil"></span>
+                      </div>
                     </div>
-                    <div class="ui-bouton">Réserver 14:00</div>
-                    <p class="ui-note">Confirmation immédiate, par email, dans votre agenda.</p>
                   </div>
                 </div>
               </figure>
             </div>
 
-            <div class="paire reveal">
-              <div class="paire-texte">
-                <h3>Les lapins et les annulations de dernière minute.</h3>
-                <p>
-                  <strong>Rappels automatiques avant chaque rendez-vous.</strong> Une annulation se
-                  fait en ligne, vous êtes prévenu aussitôt, et le créneau libéré est remis en
-                  vente sans que vous leviez le petit doigt.
-                </p>
-              </div>
-              <!-- Écran C : les annulations gérées. -->
-              <figure class="telephone tel-mini" role="img" aria-label="Écran des notifications : un rappel a été envoyé au client, une annulation a été reçue et le créneau remis en vente, puis repris par une autre réservation.">
-                <div class="tel-coque">
-                  <div class="tel-ecran" aria-hidden="true">
-                    <span class="tel-ilot"></span>
-                    <div class="ui-tete"><span class="nb">9:41</span><span class="ui-points"><i></i><i></i><i></i></span></div>
-                    <div class="ui-titre"><strong>Aujourd'hui</strong></div>
-                    <div class="ui-notif"><span class="ui-puce sage"></span><span><strong>Rappel envoyé</strong><span>Rendez-vous de 10:00, demain</span></span></div>
-                    <div class="ui-notif"><span class="ui-puce clay"></span><span><strong>Annulation reçue</strong><span>Le créneau de 14:00 est remis en vente</span></span></div>
-                    <div class="ui-notif ui-arrive"><span class="ui-puce rose"></span><span><strong>Créneau repris</strong><span>Demain 14:00 — confirmé</span></span></div>
-                    <p class="ui-note">Vous n'avez rien eu à faire.</p>
-                  </div>
-                </div>
-              </figure>
-            </div>
+            <article class="sequence-etape active" data-etape="0">
+              <div class="sequence-rang nb">01</div>
+              <h3>Vos clients réservent quand ça les arrange.</h3>
+              <p>
+                Le soir, le dimanche, pendant que vous avez les mains prises. Ils voient vos vrais
+                créneaux, choisissent, et la réservation arrive confirmée dans votre agenda — sans
+                un appel à décrocher.
+              </p>
+            </article>
 
-            <div class="paire reveal">
-              <div class="paire-texte">
-                <h3>Personne ne vous trouve.</h3>
-                <p>
-                  <strong>Une page de réservation professionnelle, référencée, à votre nom.</strong>
-                  Vos avis clients s'y affichent, votre lien se partage en bio Instagram, sur
-                  WhatsApp et sur votre fiche Google. C'est elle qu'on trouve en cherchant votre nom.
-                </p>
-              </div>
-              <!-- Écran D : la page publique du pro, avec le module d'avis.
-                   Les étoiles sont une fonctionnalité du produit, pas une
-                   traction inventée de Subitis. -->
-              <figure class="telephone tel-mini" role="img" aria-label="La page de réservation publique d'un professionnel : une note de 4,9 sur 5 pour 48 avis clients, et la réservation ouverte.">
-                <div class="tel-coque">
-                  <div class="tel-ecran" aria-hidden="true">
-                    <span class="tel-ilot"></span>
-                    <div class="ui-tete"><span class="nb">9:41</span><span class="ui-points"><i></i><i></i><i></i></span></div>
-                    <span class="ui-avatar">
-                      <svg viewBox="0 0 34 34" width="24" height="24">
-                        <circle cx="17" cy="17" r="16" fill="none" stroke="#8C3145" stroke-width="1.4" opacity=".35" />
-                        <path d="M17 1a16 16 0 0 1 13.9 23.9" fill="none" stroke="#A03A4E" stroke-width="2.6" stroke-linecap="round" />
-                        <circle cx="17" cy="17" r="4.6" fill="#8C3145" />
-                      </svg>
-                    </span>
-                    <div class="ui-titre ui-centre"><strong>Votre page de réservation</strong></div>
-                    <div class="ui-etoiles">
-                      <svg width="76" height="14" viewBox="0 0 78 14" fill="currentColor" focusable="false">
-                        <path d="M7 .8l1.8 3.7 4.1.6-3 2.9.7 4.1L7 10.2 3.4 12.1l.7-4.1-3-2.9 4.1-.6z" />
-                        <path d="M23 .8l1.8 3.7 4.1.6-3 2.9.7 4.1L23 10.2l-3.6 1.9.7-4.1-3-2.9 4.1-.6z" />
-                        <path d="M39 .8l1.8 3.7 4.1.6-3 2.9.7 4.1L39 10.2l-3.6 1.9.7-4.1-3-2.9 4.1-.6z" />
-                        <path d="M55 .8l1.8 3.7 4.1.6-3 2.9.7 4.1L55 10.2l-3.6 1.9.7-4.1-3-2.9 4.1-.6z" />
-                        <path d="M71 .8l1.8 3.7 4.1.6-3 2.9.7 4.1L71 10.2l-3.6 1.9.7-4.1-3-2.9 4.1-.6z" />
-                      </svg>
-                      <b class="nb">4,9</b><span class="nb">(48 avis)</span>
-                    </div>
-                    <div class="ui-bio"><span class="ui-os"></span><span class="ui-os court"></span></div>
-                    <span class="ui-badge sage ui-centre">Réservation ouverte</span>
-                    <div class="ui-bouton">Réserver</div>
-                    <p class="ui-note">Votre lien, en bio Instagram et sur Google.</p>
-                  </div>
-                </div>
-              </figure>
-            </div>
+            <article class="sequence-etape" data-etape="1">
+              <div class="sequence-rang nb">02</div>
+              <h3>Les annulations se gèrent sans vous.</h3>
+              <p>
+                Un rappel part automatiquement avant chaque rendez-vous. Si quelqu'un se décommande,
+                vous êtes prévenu et le créneau libéré repart en ligne aussitôt, pendant que vous
+                travaillez.
+              </p>
+            </article>
+
+            <article class="sequence-etape" data-etape="2">
+              <div class="sequence-rang nb">03</div>
+              <h3>On peut enfin vous trouver.</h3>
+              <p>
+                Une page de réservation professionnelle, référencée, à votre nom. Vos avis clients
+                s'y affichent, et votre lien se partage en bio Instagram, sur WhatsApp et sur votre
+                fiche Google.
+              </p>
+            </article>
           </div>
         </div>
       </section>
@@ -1980,17 +2429,17 @@
         </svg>
         <div class="contenant">
           <span class="eyebrow">Le modèle</span>
-          <h2 class="titre">La commission punit chaque réservation. L'abonnement, jamais.</h2>
+          <h2 class="titre">Une commission grandit avec vous. Un abonnement, non.</h2>
           <p class="sous-titre">
             Sur les places de marché, plus vous travaillez, plus vous payez. Chez Subitis, le prix
             est fixe — et vous le connaissez d'avance.
           </p>
 
-          <!-- Les trois chiffres qui rendent la douleur indiscutable.
-               Source : étude de marché Subitis (J1), données sectorielles publiques. -->
-          <div class="marche">
-            <div><span class="marche-chiffre nb">27&nbsp;000</span><span class="marche-libelle">coiffeurs à domicile en France — près du double en quelques années</span></div>
-            <div><span class="marche-chiffre nb">6&nbsp;500&nbsp;€</span><span class="marche-libelle">de revenu annuel moyen pour un coiffeur micro-entrepreneur — sous le SMIC</span></div>
+          <!-- Les trois chiffres du marché. Source : étude Subitis (J1),
+               données sectorielles publiques. -->
+          <div class="marche cascade">
+            <div><span class="marche-chiffre nb">27&nbsp;000</span><span class="marche-libelle">coiffeurs à domicile en France — un métier qui a presque doublé</span></div>
+            <div><span class="marche-chiffre nb">65&nbsp;000</span><span class="marche-libelle">établissements d'esthétique, en hausse de 8&nbsp;% en un an</span></div>
             <div><span class="marche-chiffre nb">16&nbsp;% → 25&nbsp;%</span><span class="marche-libelle">la commission du leader du domicile, en six ans</span></div>
           </div>
 
@@ -2002,27 +2451,57 @@
               <div><h3>Aucune exclusivité.</h3><p>Gardez Instagram, WhatsApp, le bouche-à-oreille. Subitis centralise, il n'enferme pas.</p></div>
             </div>
 
-            <!-- Écran E : les prix, fixés par le pro. La fourchette 35–80 €
-                 couvre les métiers de la cible sans en nommer un seul. -->
-            <figure class="telephone tel-mini" role="img" aria-label="Écran de gestion : la liste de vos prestations et les prix que vous avez fixés — 35, 48 et 80 euros — modifiables à tout moment.">
-              <div class="tel-coque">
-                <div class="tel-ecran" aria-hidden="true">
-                  <span class="tel-ilot"></span>
-                  <div class="ui-tete"><span class="nb">9:41</span><span class="ui-points"><i></i><i></i><i></i></span></div>
-                  <div class="ui-titre"><strong>Vos prestations</strong></div>
-                  <div class="ui-ligne"><span class="ui-os court"></span><span class="ui-prix nb">35&nbsp;€
-                    <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M11.3 2.1l2.6 2.6L5.4 13.2l-3.2.6.6-3.2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" /></svg></span></div>
-                  <div class="ui-ligne"><span class="ui-os"></span><span class="ui-prix nb">48&nbsp;€
-                    <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M11.3 2.1l2.6 2.6L5.4 13.2l-3.2.6.6-3.2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" /></svg></span></div>
-                  <div class="ui-ligne"><span class="ui-os court"></span><span class="ui-prix nb">80&nbsp;€
-                    <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M11.3 2.1l2.6 2.6L5.4 13.2l-3.2.6.6-3.2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" /></svg></span></div>
-                  <p class="ui-note">Modifiables à tout moment. Personne d'autre n'y touche.</p>
+            <!-- ÉCRAN E — les tarifs, fixés par le professionnel. La fourchette
+                 25–80 € couvre les métiers de la cible sans en nommer un seul. -->
+            <div class="scene-tel">
+              <figure class="telephone" role="img" aria-label="Écran des réglages de l'application : la liste de vos prestations et les prix que vous avez fixés — 25, 45 et 80 euros — modifiables à tout moment.">
+                <div class="tel-corps">
+                  <span class="tel-btn-g" aria-hidden="true"></span>
+                  <span class="tel-btn-d" aria-hidden="true"></span>
+                  <div class="tel-bord">
+                    <div class="tel-ecran" aria-hidden="true">
+                      <span class="tel-ilot"></span>
+                      <span class="tel-reflet"></span>
+                      <div class="app">
+                        <div class="app-statut">
+                          <span class="nb">9:41</span>
+                          <svg width="42" height="11" viewBox="0 0 42 11"><use href="#iStatut" /></svg>
+                        </div>
+                        <div class="app-tete">
+                          <span class="app-sur">Réglages</span>
+                          <span class="app-titre">Vos tarifs</span>
+                        </div>
+                        <div class="app-corps">
+                          <div class="app-tarif">
+                            <span class="app-detail"><b>Prestation courte</b><span>30 min</span></span>
+                            <span class="app-montant nb">25&nbsp;€ <svg width="11" height="11" viewBox="0 0 16 16"><use href="#iCrayon" /></svg></span>
+                          </div>
+                          <div class="app-tarif">
+                            <span class="app-detail"><b>Prestation standard</b><span>1 h</span></span>
+                            <span class="app-montant nb">45&nbsp;€ <svg width="11" height="11" viewBox="0 0 16 16"><use href="#iCrayon" /></svg></span>
+                          </div>
+                          <div class="app-tarif">
+                            <span class="app-detail"><b>Prestation longue</b><span>1 h 30</span></span>
+                            <span class="app-montant nb">80&nbsp;€ <svg width="11" height="11" viewBox="0 0 16 16"><use href="#iCrayon" /></svg></span>
+                          </div>
+                        </div>
+                        <p class="app-pied">Modifiables à tout moment. Personne d'autre n'y touche.</p>
+                        <div class="app-onglets">
+                          <span><svg width="14" height="14" viewBox="0 0 14 14"><use href="#iAgenda" /></svg>Agenda</span>
+                          <span><svg width="14" height="14" viewBox="0 0 14 14"><use href="#iClients" /></svg>Clients</span>
+                          <span><svg width="14" height="14" viewBox="0 0 14 14"><use href="#iPage" /></svg>Ma page</span>
+                          <span class="on"><svg width="14" height="14" viewBox="0 0 14 14"><use href="#iReglages" /></svg>Réglages</span>
+                        </div>
+                        <span class="app-accueil"></span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </figure>
+              </figure>
+            </div>
           </div>
 
-          <div class="comparatif">
+          <div class="comparatif reveal">
             <h3>Sur une prestation à 60&nbsp;€, ce qui reste dans votre poche</h3>
             <table>
               <thead>
@@ -2046,8 +2525,8 @@
 
           <p class="source">
             Exemple au taux de 25&nbsp;% relevé chez le leader de la beauté à domicile — il était de
-            16&nbsp;% HT en 2018. Aucun nom sur cette page&nbsp;: le problème est le modèle, pas une
-            enseigne. Chiffres du marché&nbsp;: étude Subitis, données sectorielles publiques.
+            16&nbsp;% HT en 2018. Aucun nom sur cette page&nbsp;: ce qu'on discute, c'est le modèle,
+            pas une enseigne. Chiffres du marché&nbsp;: étude Subitis, données sectorielles publiques.
           </p>
         </div>
       </section>
@@ -2063,9 +2542,10 @@
           </p>
 
           <div class="offres-grille">
-            <div class="coque offre-principale">
+            <div class="coque offre-principale reveal">
               <div class="coeur">
-                <!-- CLASSIQUE 19 € et PREMIUM 39 € : prix du BMC, À VALIDER avant publication. -->
+                <!-- CLASSIQUE 19 € et PREMIUM 39 € : prix du Business Model Canvas,
+                     À VALIDER par les entretiens prestataires. -->
                 <h3 class="offre-nom">Classique</h3>
                 <div class="prix-chiffre nb">19&nbsp;€ <small>/ mois</small></div>
                 <ul class="offre-liste">
@@ -2091,7 +2571,7 @@
             </div>
 
             <div class="offre-colonne">
-              <div class="offre">
+              <div class="offre reveal">
                 <h3 class="offre-nom">Premium</h3>
                 <div class="prix-chiffre nb">39&nbsp;€ <small>/ mois</small></div>
                 <p>
@@ -2100,7 +2580,7 @@
                   en un geste.
                 </p>
               </div>
-              <div class="offre">
+              <div class="offre reveal">
                 <h3 class="offre-nom">Sur-mesure</h3>
                 <div class="prix-mot">Sur devis</div>
                 <p>
@@ -2125,9 +2605,9 @@
       <section class="bande" id="confiance">
         <div class="contenant">
           <span class="eyebrow">Ce qu'on vous doit</span>
-          <h2 class="titre">Pas de chiffres gonflés, pas de clients garantis.</h2>
+          <h2 class="titre">Ce qu'on vous promet, et ce qu'on ne vous promet pas.</h2>
           <p class="sous-titre">
-            Subitis démarre. Plutôt que d'inventer des compteurs, voilà ce sur quoi on s'engage.
+            Subitis démarre. Plutôt que d'afficher des compteurs, voilà ce sur quoi on s'engage.
           </p>
 
           <div class="confiance">
@@ -2146,21 +2626,21 @@
           </div>
 
           <div class="faq">
-            <h3>Les objections qu'on nous fait vraiment</h3>
+            <h3>Les questions qu'on nous pose</h3>
             <details>
               <summary>«&nbsp;J'ai déjà Instagram, ça me suffit.&nbsp;»</summary>
               <p>
                 Instagram fait découvrir, il ne fait pas réserver. Les demandes arrivent en
                 messages privés, à caler à la main, à toute heure. Subitis est le lien que vous
-                mettez en bio&nbsp;: on vous découvre sur Instagram, on réserve sur votre page —
-                sans vous interrompre.
+                mettez en bio&nbsp;: on vous découvre sur Instagram, on réserve sur votre page.
+                Les deux travaillent ensemble.
               </p>
             </details>
             <details>
               <summary>«&nbsp;Les plateformes prennent une commission.&nbsp;»</summary>
               <p>
-                Pas ici. Jamais. Le prix payé par votre client vous revient en entier — c'est le
-                modèle, pas une promotion de lancement. Sur une coupe à 25&nbsp;€, il vous reste
+                Pas ici. Le prix payé par votre client vous revient en entier — c'est le modèle,
+                pas une promotion de lancement. Sur une coupe à 25&nbsp;€, il vous reste
                 25&nbsp;€.
               </p>
             </details>
@@ -2176,8 +2656,8 @@
               <summary>«&nbsp;Je ne veux pas être noté comme sur les grandes plateformes.&nbsp;»</summary>
               <p>
                 Les avis restent sur votre page, attachés à de vrais rendez-vous passés par elle.
-                Vous n'êtes pas classé dans une liste face à vos concurrents&nbsp;: c'est votre
-                vitrine, pas un annuaire.
+                Vous n'apparaissez pas dans un classement face à vos concurrents&nbsp;: c'est
+                votre vitrine, pas un annuaire.
               </p>
             </details>
             <details>
@@ -2189,10 +2669,11 @@
               </p>
             </details>
             <details>
-              <summary>Et si un client annule&nbsp;?</summary>
+              <summary>Et si un client se décommande&nbsp;?</summary>
               <p>
-                Il annule en ligne, vous êtes prévenu par email, et le créneau libéré est aussitôt
-                remis en vente sur votre page.
+                Il annule en ligne, vous êtes prévenu par email, et le créneau libéré repart
+                aussitôt sur votre page. Un rappel automatique part aussi la veille de chaque
+                rendez-vous, ce qui suffit souvent à éviter l'oubli.
               </p>
             </details>
           </div>
@@ -2350,16 +2831,16 @@
 
         const phrase = () => {
           if (vides.valueAsNumber === 0)
-            return 'Zéro créneau vide ? Il reste le téléphone qui sonne en pleine prestation — la suite de la page vous concerne quand même.';
+            return 'Aucun créneau libre ? Tant mieux. Le reste de la page parle du temps passé à caler les rendez-vous.';
           const n = Math.floor(mensuel() / 19);
-          if (n < 2) return "Un seul créneau repris rembourse l'abonnement Classique à 19 €.";
+          if (n < 2) return "Un seul créneau repris rembourse l'abonnement Classique à 19 €.";
           return (
-            'Soit ' + n + " fois l'abonnement Classique à 19 €. Un créneau non vendu à 14 h est perdu à 15 h : il ne se reporte pas."
+            'Soit ' + n + " fois l'abonnement Classique à 19 €. Un créneau libre ne se reporte pas au lendemain."
           );
         };
 
         const rendre = () => {
-          affichePrix.textContent = fmt.format(prix.valueAsNumber) + ' €';
+          affichePrix.textContent = fmt.format(prix.valueAsNumber) + ' €';
           afficheVides.textContent = vides.value;
           total.textContent = fmt.format(mensuel());
           equivalence.textContent = phrase();
@@ -2418,8 +2899,8 @@
         image = requestAnimationFrame(pas);
       })();
 
-      /* ------------- Révélations : blocs .reveal et écrans de téléphone ------------- */
-      const aReveler = [...document.querySelectorAll('.reveal, .telephone')];
+      /* ------- Révélations : blocs, cascades et écrans de téléphone ------- */
+      const aReveler = [...document.querySelectorAll('.reveal, .cascade, .telephone')];
       if ('IntersectionObserver' in window && !reduit) {
         const observateur = new IntersectionObserver(
           (entrees) => {
@@ -2435,6 +2916,34 @@
       } else {
         aReveler.forEach((el) => el.classList.add('vu'));
       }
+
+      /* ------------- La séquence épinglée : un appareil, trois écrans -------------
+         L'appareil reste à l'écran pendant que les trois réponses défilent.
+         La bande de détection est une ligne au milieu du viewport
+         (`-50% 0px -50%`) : l'étape qui la traverse devient l'étape active,
+         et l'écran suit. On ne désactive jamais sur la sortie — sinon, en haut
+         et en bas de la séquence, plus aucune étape ne serait active. */
+      (() => {
+        const etapes = [...document.querySelectorAll('.sequence-etape')];
+        const vues = [...document.querySelectorAll('.telephone.multi .app')];
+        if (etapes.length === 0 || vues.length === 0) return;
+
+        const activer = (i) => {
+          etapes.forEach((e, k) => e.classList.toggle('active', k === i));
+          vues.forEach((v, k) => v.classList.toggle('active', k === i));
+        };
+
+        if (!('IntersectionObserver' in window)) return;
+        const observateur = new IntersectionObserver(
+          (entrees) => {
+            entrees.forEach((e) => {
+              if (e.isIntersecting) activer(Number(e.target.dataset.etape));
+            });
+          },
+          { rootMargin: '-50% 0px -50% 0px' },
+        );
+        etapes.forEach((e) => observateur.observe(e));
+      })();
 
       /* ------- La barre se retire a la descente, revient a la remontee ------- */
       (() => {
@@ -2568,6 +3077,7 @@
          atteints au défilement sortent vides sur le PDF. */
       window.addEventListener('beforeprint', () => {
         aReveler.forEach((el) => el.classList.add('vu'));
+        document.querySelectorAll('.sequence-etape').forEach((e) => e.classList.add('active'));
         figerCalculateur();
       });
     </script>

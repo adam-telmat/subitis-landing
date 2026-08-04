@@ -92,17 +92,25 @@ passe :
 
 - **aucun défilement horizontal** de 320 à 1440 px (8 largeurs)
 - **cibles tactiles ≥ 44 px**, un seul `h1`, aucun saut de niveau, tout champ nommé
-- **contraste WCAG mesuré** sur ~150 couples texte/fond, fonds translucides composés
+- **contraste WCAG mesuré** sur ~215 couples texte/fond : fonds translucides composés sur la
+  pile de parents, couleurs de texte translucides composées sur leur fond, et le texte propre
+  de chaque élément mesuré même quand il porte une icône
+- **deux familles de mouvement** : les commandes (liens, boutons, champs, `summary`) restent
+  sous 300 ms, les entrées au défilement peuvent aller jusqu'à 1 s
 - les **invariants de contenu** mot pour mot, et l'absence de tout nom de place de marché à
   commission (le contre-positionnement attaque le modèle, pas une enseigne)
 - le **calculateur** : 45 € × 3 × 4 = 540 par défaut, recalcul instantané, formatage des
   grands montants, événement GA4 émis une seule fois, `aria-live` présent
-- les **cinq écrans de téléphone** : `role="img"` + description, aucun élément interactif ni
-  titre dans les interfaces factices
+- les **appareils dessinés** : `role="img"` + description, aucun élément interactif ni titre
+  dans les interfaces factices
+- la **séquence épinglée** : l'étape qui traverse le milieu du viewport pilote l'écran affiché,
+  dans les deux sens de défilement, et un seul écran est actif à la fois
+- le **ton** : aucun terme qui met le professionnel en faute (« lapin », « punit », « détruit »)
 - le formulaire **avertit** au lieu de simuler un envoi réussi
-- **aucune transition au-delà de 300 ms**, mouvement réduit respecté
+- mouvement réduit respecté
 - **aucune requête vers l'extérieur** — les polices sont dans le fichier
-- impression : curseurs remplacés par la phrase-exemple, compteur figé à 540, PDF généré
+- impression : curseurs remplacés par la phrase-exemple, compteur figé à 540, un seul écran de
+  la séquence sur le PDF, PDF généré
 - **navigation clavier** : chaque arrêt montre son contour, la FAQ s'ouvre à Entrée
 
 Il produit aussi `apercu/landing-{390,768,1280}.png` et `apercu/subitis-landing.pdf`
@@ -121,12 +129,12 @@ refaire l'opération si l'on change de police.
 
 ## Ce que contient `index.html`
 
-Hero (texte + **écran d'agenda qui se remplit**) · le **calculateur de manque à gagner** ·
-trois douleurs / trois écrans (réservation 24 h/24, annulations gérées, page référencée) ·
-comment ça marche en trois étapes · **le modèle** (fond encre : les trois chiffres du marché,
-commission vs abonnement chiffré sur 60 €, écran des prix) · les trois offres (Classique 19 € /
-Premium 39 € — à valider / sur devis) · engagements + FAQ des vraies objections · le
-formulaire d'essai · le pied de page.
+Hero (texte + **l'agenda qui se remplit sous les yeux**) · le **calculateur de manque à
+gagner** · la **séquence épinglée** (un appareil, trois écrans qui se succèdent au
+défilement) · comment ça marche en trois étapes · **le modèle** (fond encre : les trois
+chiffres du marché, commission vs abonnement chiffré sur 60 €, écran des tarifs) · les trois
+offres (Classique 19 € / Premium 39 € — à valider / sur devis) · engagements + FAQ des vraies
+objections · le formulaire d'essai · le pied de page.
 
 Le contenu s'appuie sur les documents de `plan-landing/` (BMC abonnement, fiche marché,
 personas) : les prix, les chiffres du marché (27 000 coiffeurs à domicile, revenu moyen sous
@@ -137,9 +145,28 @@ noté », « Pas le temps d'un nouvel outil ») viennent de là, pas de l'imagin
 ## Les décisions qui ont une raison
 
 **Aucune photo de persona.** Une photo de barbier braque l'esthéticienne, et inversement. Ce que
-la page montre, c'est **le produit** : cinq écrans de l'application dessinés en pur HTML/CSS,
-dans des coques de téléphone qui déclinent le double-liseré maison. Aucune capture d'écran non
-plus — l'application porte encore l'ancien nom.
+la page montre, c'est **le produit** : l'application est dessinée en pur HTML/CSS — barre
+d'état, grand titre, semaine, agenda, barre d'onglets, indicateur d'accueil — dans un appareil
+lui aussi dessiné : châssis titane en dégradé, liseré noir, îlot, boutons de tranche, reflet de
+dalle, le tout aux proportions réelles (393 × 852 pt, rayon 55 pt) et posé en perspective 3D.
+Toutes ses mesures dérivent d'une seule variable `--l`. Aucune capture d'écran non plus —
+l'application porte encore l'ancien nom.
+
+**Un appareil, trois écrans, épinglé au défilement.** La section « trois moments » garde
+l'appareil à l'écran pendant que les réponses défilent, et change son écran à chaque étape.
+La détection est une ligne au milieu du viewport (`rootMargin: -50% 0 -50%`) ; on n'éteint
+jamais sur la sortie, sinon plus aucune étape ne serait active en haut et en bas de la section.
+Le sortant s'efface en 220 ms et l'entrant arrive 170 ms plus tard : un fondu croisé symétrique
+superposerait deux mises en page et rendrait l'écran illisible une demi-seconde.
+
+**Deux familles de mouvement, et c'est délibéré.** Les commandes répondent sous 300 ms — une
+commande lente est une commande cassée. Les entrées au défilement prennent 760 ms avec une
+mise au point qui se fait — une apparition brutale fait cheap. Le vérificateur contrôle les
+deux seuils séparément.
+
+**Le ton vise le statu quo, jamais le professionnel.** Pas de « lapins », pas de « la
+commission punit », pas de « personne ne vous trouve ». Les faits restent les mêmes, la mise en
+cause disparaît. Une règle du vérificateur l'empêche de revenir.
 
 **Le chiffre-choc n'est pas inventé, il est calculé par le visiteur.** « Vos créneaux valent
 X € » est faux par nature : un barbier à 15 € et une prothésiste à 80 € ne perdent pas la même
@@ -169,7 +196,11 @@ landings et l'application doivent se reconnaître.
 
 - Les prix (19 € / 39 €) sont ceux du BMC, à valider par les entretiens — voir plus haut.
 - Les écrans dessinés ne remplaceront jamais une vraie capture : quand l'application sera
-  renommée, une capture réelle dans la coque de téléphone sera le meilleur argument.
+  renommée, une capture réelle glissée dans la coque sera le meilleur argument de la page.
+  Tout est prévu pour — il suffit de remplacer le contenu de `.tel-ecran` par une image.
+- Pas de WebGL ni de framework, et c'est un choix : React, Tailwind ou Three.js coûteraient
+  l'autonomie du fichier unique, le PDF du livrable et l'ouverture sans build, pour un rendu
+  que le CSS 3D obtient déjà.
 - Les polices sont embarquées en latin de base uniquement. Un prénom en cyrillique ou en grec
   retomberait sur la police système.
 - `outils/verifier.mjs` emprunte Playwright à `c:/Users/telmat/Desktop/hackaton-app` : si ce
