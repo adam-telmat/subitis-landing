@@ -1,0 +1,11 @@
+# Fichiers de travail — rien ici n'est nécessaire pour publier la page.
+.tmp/
+.polices/
+node_modules/
+
+# Le serveur local de relecture
+.serveur.mjs
+
+*.log
+.DS_Store
+Thumbs.db
