@@ -408,16 +408,51 @@ if (EST_INDEX) {
 /*  6. Les formulaires ne mentent pas quand ENDPOINT est vide                 */
 /* -------------------------------------------------------------------------- */
 console.log('\n— Honnêteté des formulaires');
+const remplir = async () => {
+  await page.fill('#prenom', 'Test');
+  await page.selectOption('#metier', { index: 1 });
+  await page.fill('#zone', EST_INDEX ? 'Lyon 3e' : '13006');
+  if (EST_INDEX) {
+    await page.fill('#email', 'test@exemple.fr');
+    await page.selectOption('#canal', { index: 1 });
+  } else {
+    await page.check('input[name=deplacement][value=oui]');
+    await page.fill('#contact', '0600000000');
+  }
+};
+
 await page.waitForTimeout(1600);
-await page.fill('#prenom', 'Test');
-await page.selectOption('#metier', { index: 1 });
-if (!EST_INDEX) await page.check('input[name=deplacement][value=oui]');
-await page.fill('#zone', EST_INDEX ? 'Lyon 3e' : '13006');
-await page.fill('#contact', '0600000000');
+await remplir();
 await page.click('#form-pro button[type=submit]');
 const alerte = await page.locator('#alerte-pro').innerText();
 ok(/pas encore reli/i.test(alerte), 'formulaire non branché : il avertit');
 ok(!(await page.locator('#succes-pro').isVisible()), "aucun faux message de succès");
+
+if (EST_INDEX) {
+  /* Une adresse mal saisie est une demande perdue en silence : le même échec
+     que le formulaire non branché, en moins visible. Elle doit être refusée
+     AVANT le garde ENDPOINT, et le focus doit revenir sur le champ fautif. */
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForTimeout(1600);
+  await remplir();
+  await page.fill('#email', 'test@exemple');
+  await page.click('#form-pro button[type=submit]');
+  const alerteEmail = await page.locator('#alerte-pro').innerText();
+  ok(/adresse email ne semble pas valide/i.test(alerteEmail), `email invalide : il le dit (« ${alerteEmail.slice(0, 42)}… »)`);
+  ok(await page.locator('#email').evaluate((e) => e === document.activeElement), 'email invalide : le focus revient sur le champ');
+
+  /* Les champs facultatifs le sont vraiment : sans eux, l'envoi doit passer
+     la validation et n'échouer que sur le garde ENDPOINT. */
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForTimeout(1600);
+  await remplir();
+  await page.click('#form-pro button[type=submit]');
+  const sansOptionnels = await page.locator('#alerte-pro').innerText();
+  ok(
+    /pas encore reli/i.test(sansOptionnels),
+    'téléphone et réseaux sont bien facultatifs : la validation passe sans eux',
+  );
+}
 
 /* champ manquant → focus sur le champ fautif */
 await page.reload({ waitUntil: 'load' });

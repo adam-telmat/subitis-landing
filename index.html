@@ -1615,6 +1615,33 @@
         color: var(--ink-500);
         margin-top: -0.15rem;
       }
+      /* Dire ce qui est facultatif vaut mieux que marquer ce qui est requis :
+         un formulaire où tout semble obligatoire fait fuir. */
+      .facultatif {
+        font-weight: 500;
+        font-size: 0.75rem;
+        letter-spacing: 0.04em;
+        color: var(--ink-500);
+      }
+      /* Les trois réseaux tiennent sur une ligne même à 320 px : empilés, ils
+         ajoutaient trois écrans de défilement à un formulaire déjà long, et
+         un formulaire long se remplit moins. */
+      .reseaux {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.45rem;
+      }
+      .reseaux > * {
+        min-width: 0;
+      }
+      .reseaux label {
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--ink-500);
+      }
+      .reseaux input {
+        padding-inline: 0.7rem;
+      }
       .champ input,
       .champ select {
         font-family: var(--sans);
@@ -2822,8 +2849,8 @@
             <span class="eyebrow">L'essai</span>
             <h2 class="titre">Testez Subitis sur votre propre activité.</h2>
             <p class="sous-titre">
-              Prénom, métier, zone, un canal pour vous répondre&nbsp;: on vous ouvre un accès
-              d'essai et on configure votre page avec vous.
+              Votre métier, votre zone, et le canal sur lequel vous répondre&nbsp;: on vous ouvre
+              un accès d'essai et on configure votre page avec vous.
             </p>
             <p class="sous-titre">
               Juillet est le mois le plus creux de l'année en coiffure. La rentrée, elle, se
@@ -2861,9 +2888,47 @@
                 </div>
 
                 <div class="champ">
-                  <label for="contact">Téléphone ou Instagram</label>
-                  <span class="aide">Le canal sur lequel vous préférez qu'on vous réponde.</span>
-                  <input id="contact" name="contact" type="text" required />
+                  <label for="email">Email</label>
+                  <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="vous@exemple.fr" required />
+                </div>
+
+                <div class="champ">
+                  <label for="telephone">Téléphone <span class="facultatif">facultatif</span></label>
+                  <input id="telephone" name="telephone" type="tel" inputmode="tel" autocomplete="tel" placeholder="06 12 34 56 78" />
+                </div>
+
+                <!-- Les trois réseaux sont groupés sous un seul intitulé : trois
+                     champs alignés se lisent comme un bloc, trois champs
+                     empilés se lisent comme trois questions de plus. -->
+                <div class="champ">
+                  <span class="legende">Vos réseaux <span class="facultatif">facultatif</span></span>
+                  <span class="aide">C'est là qu'on regarde votre travail avant de vous répondre.</span>
+                  <div class="reseaux">
+                    <div class="champ">
+                      <label for="instagram">Instagram</label>
+                      <input id="instagram" name="instagram" type="text" autocomplete="off" placeholder="@" />
+                    </div>
+                    <div class="champ">
+                      <label for="tiktok">TikTok</label>
+                      <input id="tiktok" name="tiktok" type="text" autocomplete="off" placeholder="@" />
+                    </div>
+                    <div class="champ">
+                      <label for="facebook">Facebook</label>
+                      <input id="facebook" name="facebook" type="text" autocomplete="off" placeholder="Votre page" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="champ">
+                  <label for="canal">Comment préférez-vous qu'on vous réponde&nbsp;?</label>
+                  <select id="canal" name="canal" required>
+                    <option value="">Choisissez un canal</option>
+                    <option>Email</option>
+                    <option>Téléphone</option>
+                    <option>Instagram</option>
+                    <option>TikTok</option>
+                    <option>Facebook</option>
+                  </select>
                 </div>
 
                 <input class="pot" type="text" name="site_web" tabindex="-1" autocomplete="off" aria-hidden="true" />
@@ -3173,7 +3238,16 @@
 
           const manquant = obligatoires.find((c) => !donnees[c]);
           if (manquant) {
-            erreur('Merci de remplir tous les champs avant d’envoyer.', element.querySelector(`[name="${manquant}"]`));
+            erreur('Merci de remplir les champs obligatoires avant d’envoyer.', element.querySelector(`[name="${manquant}"]`));
+            return;
+          }
+
+          // Une adresse mal saisie, c'est une demande d'essai perdue sans que
+          // personne ne le sache — exactement le défaut que le garde ENDPOINT
+          // évite plus bas. On la contrôle donc avant d'envoyer quoi que ce soit.
+          const email = element.querySelector('input[type="email"]');
+          if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim())) {
+            erreur('Cette adresse email ne semble pas valide. Vérifiez-la : c’est par là qu’on vous répondra.', email);
             return;
           }
 
@@ -3209,7 +3283,7 @@
         form: 'form-pro',
         alerte: 'alerte-pro',
         succes: 'succes-pro',
-        obligatoires: ['prenom', 'metier', 'zone', 'contact'],
+        obligatoires: ['prenom', 'metier', 'zone', 'email', 'canal'],
         nomEvenement: 'essai_pro',
         source: 'landing-essai',
       });
