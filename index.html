@@ -1454,27 +1454,66 @@
         background: var(--muted);
         border-block: 1px solid var(--line);
       }
-      .offres-grille {
-        margin-top: 2.25rem;
+      /* ------------------------------- Les offres -------------------------------
+         Trois cartes de structure identique. Celle du milieu est la carte
+         phare : fond encre, badge, et sur grand écran elle déborde de quelques
+         millimètres en haut et en bas. C'est ce décalage qui fait la
+         hiérarchie, pas une couleur criarde. */
+      .offres {
+        margin-top: 2.5rem;
         display: grid;
         gap: 1.25rem;
-        align-items: stretch;
-      }
-      .offre-principale .coeur {
-        display: flex;
-        flex-direction: column;
-        gap: 1.1rem;
-      }
-      .offre-colonne {
-        display: grid;
-        gap: 1.25rem;
-        align-content: stretch;
       }
       .offre {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
         background: var(--surface);
         border: 1px solid var(--line);
-        border-radius: var(--core);
-        padding: 1.5rem;
+        border-radius: var(--shell);
+        padding: 1.75rem 1.5rem;
+        box-shadow: var(--reflet), var(--ombre);
+        transition:
+          transform var(--normal) var(--ease),
+          box-shadow var(--normal) var(--ease),
+          border-color var(--normal) var(--ease);
+      }
+      /* Le survol soulève la carte. Encadré : au doigt il n'existe pas, et en
+         mouvement réduit il ne doit pas exister non plus. */
+      @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+        .offre:hover {
+          transform: translate3d(0, -6px, 0);
+          border-color: var(--line-fort);
+          box-shadow: var(--reflet), var(--ombre-haute);
+        }
+        .offre-phare:hover {
+          border-color: var(--ink-900);
+          box-shadow: 0 34px 70px -32px rgba(23, 17, 15, 0.62);
+        }
+      }
+      .offre-phare {
+        background: var(--ink-900);
+        border-color: var(--ink-900);
+        color: rgba(251, 249, 246, 0.8);
+        box-shadow: var(--ombre-haute);
+      }
+      .offre-badge {
+        position: absolute;
+        top: -0.7rem;
+        left: 1.5rem;
+        background: var(--rose-600);
+        color: var(--canvas);
+        font-size: 0.625rem;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        padding: 0.4rem 0.75rem;
+        border-radius: 999px;
+      }
+      .offre-tete {
+        display: grid;
+        gap: 0.3rem;
       }
       .offre-nom {
         font-size: 0.75rem;
@@ -1483,65 +1522,98 @@
         text-transform: uppercase;
         color: var(--ink-500);
       }
-      .prix-chiffre {
+      .offre-phare .offre-nom {
+        color: #e5a894;
+      }
+      .offre-quoi {
+        font-size: 0.9375rem;
+        color: var(--ink-700);
+      }
+      .offre-phare .offre-quoi {
+        color: rgba(251, 249, 246, 0.8);
+      }
+      .offre-prix {
+        display: flex;
+        align-items: baseline;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+      .offre-prix small {
+        font-size: 0.9375rem;
+        font-weight: 500;
+        color: var(--ink-500);
+      }
+      .offre-phare .offre-prix small {
+        color: rgba(251, 249, 246, 0.62);
+      }
+      .offre-note {
+        margin-top: -0.6rem;
+        font-size: 0.8125rem;
+        color: var(--ink-500);
+      }
+      .offre-phare .offre-note {
+        color: rgba(251, 249, 246, 0.62);
+      }
+      .offre-appel {
+        margin-top: auto;
+      }
+      .offre-phare .bouton {
+        background: var(--canvas);
+        color: var(--ink-900);
+      }
+      .offre-phare .bouton:hover {
+        background: #ffffff;
+      }
+      .offre-phare .bouton i {
+        background: rgba(23, 17, 15, 0.08);
+      }
+      .prix-chiffre,
+      .prix-mot {
         font-family: var(--display);
-        font-size: clamp(2.5rem, 8vw, 3.4rem);
+        font-size: clamp(2.6rem, 7vw, 3.1rem);
         font-weight: 300;
         color: var(--ink-900);
         line-height: 1;
         letter-spacing: -0.03em;
       }
-      .prix-chiffre small {
-        font-family: var(--sans);
-        font-size: 1rem;
-        font-weight: 500;
-        color: var(--ink-500);
-      }
-      .offre .prix-chiffre {
-        font-size: 2.7rem;
-        margin-top: 0.6rem;
-      }
-      .offre p {
-        margin-top: 0.75rem;
-        color: var(--ink-500);
-        font-size: 1rem;
+      .offre-phare .prix-chiffre,
+      .offre-phare .prix-mot {
+        color: var(--canvas);
       }
       .prix-mot {
-        font-family: var(--display);
-        font-size: 2.2rem;
-        font-weight: 300;
-        color: var(--ink-900);
-        margin-top: 0.6rem;
+        font-size: clamp(2rem, 5.5vw, 2.4rem);
       }
       .offre-liste {
         list-style: none;
         display: grid;
-        gap: 0.55rem;
+        gap: 0.6rem;
       }
       .offre-liste li {
         display: grid;
         grid-template-columns: 18px 1fr;
         gap: 0.6rem;
         align-items: start;
-        font-size: 1rem;
+        font-size: 0.9375rem;
         color: var(--ink-700);
+      }
+      .offre-phare .offre-liste li {
+        color: rgba(251, 249, 246, 0.86);
+      }
+      .offre-phare .offre-liste strong {
+        color: var(--canvas);
       }
       .offre-liste svg {
         width: 18px;
         height: 18px;
-        margin-top: 0.25rem;
+        margin-top: 0.2rem;
       }
       .offre-ancre {
+        margin-top: 2rem;
         border-left: 2px solid var(--rose-600);
-        padding-left: 1rem;
-        font-size: 1rem;
+        padding-left: 1.1rem;
+        font-size: 1.0625rem;
         color: var(--ink-700);
-      }
-      .offre-principale .bouton {
-        margin-top: auto;
-      }
-      .offre .bouton-clair {
-        margin-top: 1rem;
+        max-width: 62ch;
       }
 
       /* -------------------------------- Confiance -------------------------------- */
@@ -1897,8 +1969,15 @@
           gap: 2.25rem;
           padding: 2rem;
         }
-        .offres-grille {
-          grid-template-columns: 1.2fr 0.8fr;
+        .offres {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1.25rem;
+          align-items: stretch;
+        }
+        /* La carte phare déborde de sa rangée : c'est ce décalage qui la
+           désigne, sans avoir à crier avec une couleur. */
+        .offre-phare {
+          margin-block: -1rem;
         }
         .marche {
           grid-template-columns: repeat(3, 1fr);
@@ -2133,8 +2212,20 @@
         .sequence-etape h3 {
           font-size: 1.3rem !important;
         }
-        .offres-grille {
-          grid-template-columns: 1fr 1fr !important;
+        .offres {
+          grid-template-columns: repeat(3, 1fr) !important;
+          gap: 0.8rem !important;
+        }
+        .offre {
+          padding: 0.9rem !important;
+          box-shadow: none !important;
+          break-inside: avoid;
+        }
+        .offre-phare {
+          margin-block: 0 !important;
+        }
+        .offre-appel {
+          display: none !important;
         }
         .modele-haut {
           grid-template-columns: 1.15fr 0.85fr !important;
@@ -2646,8 +2737,89 @@
         </div>
       </section>
 
+      <!-- =============================== LES OFFRES ===============================
+           Les trois cartes ont la MÊME structure : nom, à qui elle s'adresse,
+           prix, liste, appel. Avant, le Classique affichait six lignes et le
+           Premium un paragraphe : payer plus semblait donner moins.
+
+           PRIX ET CONTENU À VALIDER — les montants viennent du Business Model
+           Canvas, qui les marque lui-même à valider ; la répartition des
+           fonctionnalités entre Classique et Premium reste à trancher avec les
+           entretiens prestataires.
+           =========================================================================== -->
+      <section class="bande" id="offres">
+        <div class="contenant">
+          <span class="eyebrow">L'abonnement</span>
+          <h2 class="titre">Un prix fixe, remboursé par une seule prestation.</h2>
+          <p class="sous-titre">
+            Pas de pourcentage, pas de surprise en fin de mois. Vous savez ce que Subitis vous
+            coûte avant même de l'ouvrir.
+          </p>
+
+          <div class="offres">
+            <article class="offre reveal">
+              <div class="offre-tete">
+                <h3 class="offre-nom">Classique</h3>
+                <p class="offre-quoi">Pour ouvrir votre réservation en ligne.</p>
+              </div>
+              <p class="offre-prix"><span class="prix-chiffre nb">19&nbsp;€</span><small>/ mois</small></p>
+              <p class="offre-note">Sans engagement, résiliable en un message.</p>
+              <ul class="offre-liste">
+                <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Votre page de réservation, référencée, à votre nom</li>
+                <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Agenda et réservation en ligne 24&nbsp;h/24</li>
+                <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Confirmations et rappels automatiques par email</li>
+                <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Annulation en ligne, créneau remis en vente</li>
+                <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Avis clients sur votre page</li>
+                <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Zéro commission, à vos prix</li>
+              </ul>
+              <a class="bouton bouton-clair offre-appel" href="#essai">Tester Subitis <i aria-hidden="true"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4.5 11.5L11.5 4.5M11.5 4.5H5.5M11.5 4.5V10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></i></a>
+            </article>
+
+            <article class="offre offre-phare reveal">
+              <span class="offre-badge">Notre recommandation</span>
+              <div class="offre-tete">
+                <h3 class="offre-nom">Premium</h3>
+                <p class="offre-quoi">Pour être trouvé, et le mesurer.</p>
+              </div>
+              <p class="offre-prix"><span class="prix-chiffre nb">39&nbsp;€</span><small>/ mois</small></p>
+              <p class="offre-note">Sans engagement, résiliable en un message.</p>
+              <ul class="offre-liste">
+                <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#A8D5B5" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#A8D5B5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg><strong>Les six fonctionnalités du Classique</strong></li>
+                <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#A8D5B5" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#A8D5B5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Profil mis en avant dans les résultats</li>
+                <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#A8D5B5" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#A8D5B5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Fréquentation de votre page&nbsp;: visites et clics</li>
+                <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#A8D5B5" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#A8D5B5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Suivi de votre note et de vos avis clients</li>
+                <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#A8D5B5" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#A8D5B5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Partage de votre profil en un geste</li>
+              </ul>
+              <a class="bouton offre-appel" href="#essai">Tester Subitis <i aria-hidden="true"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4.5 11.5L11.5 4.5M11.5 4.5H5.5M11.5 4.5V10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></i></a>
+            </article>
+
+            <article class="offre reveal">
+              <div class="offre-tete">
+                <h3 class="offre-nom">Sur-mesure</h3>
+                <p class="offre-quoi">Pour une équipe ou plusieurs adresses.</p>
+              </div>
+              <p class="offre-prix"><span class="prix-mot">Sur devis</span></p>
+              <p class="offre-note">Tarif dégressif selon le nombre de comptes.</p>
+              <ul class="offre-liste">
+                <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Plusieurs agendas, plusieurs praticiens</li>
+                <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Une page de réservation par adresse</li>
+                <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Mise en route accompagnée</li>
+                <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Une seule facture pour tous les comptes</li>
+                <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>On ne facture que ce qui vous sert</li>
+              </ul>
+              <a class="bouton bouton-clair offre-appel" href="#essai">En parler avec nous <i aria-hidden="true"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4.5 11.5L11.5 4.5M11.5 4.5H5.5M11.5 4.5V10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></i></a>
+            </article>
+          </div>
+
+          <p class="offre-ancre">
+            La première réservation du mois paie l'abonnement, même une coupe à 25&nbsp;€, et
+            toutes les suivantes sont pour vous.
+          </p>
+        </div>
+      </section>
+
       <!-- ========================== COMMENT ÇA MARCHE ========================== -->
-      <section class="bande" id="fonctionnement">
+      <section id="fonctionnement">
         <div class="contenant">
           <span class="eyebrow">Comment ça marche</span>
           <h2 class="titre">Trois étapes, et les rendez-vous tombent dans votre agenda.</h2>
@@ -2798,76 +2970,6 @@
             de 16&nbsp;% HT en 2018. Aucun nom sur cette page&nbsp;: ce qu'on discute, c'est le modèle,
             pas une enseigne. Chiffres du marché&nbsp;: étude Subitis, données sectorielles publiques.
           </p>
-        </div>
-      </section>
-
-      <!-- =============================== LES OFFRES =============================== -->
-      <section id="offres">
-        <div class="contenant">
-          <span class="eyebrow">L'abonnement</span>
-          <h2 class="titre">Un prix fixe, remboursé par une seule prestation.</h2>
-          <p class="sous-titre">
-            Pas de pourcentage, pas de surprise en fin de mois. Vous savez ce que Subitis vous
-            coûte avant même de l'ouvrir.
-          </p>
-
-          <div class="offres-grille">
-            <div class="coque offre-principale reveal">
-              <div class="coeur">
-                <!-- CLASSIQUE 19 € et PREMIUM 39 € : prix du Business Model Canvas,
-                     À VALIDER par les entretiens prestataires. -->
-                <h3 class="offre-nom">Classique</h3>
-                <div class="prix-chiffre nb">19&nbsp;€ <small>/ mois</small></div>
-                <ul class="offre-liste">
-                  <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Page de réservation référencée, à votre nom</li>
-                  <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Agenda et réservation en ligne 24&nbsp;h/24</li>
-                  <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Confirmations et rappels par email</li>
-                  <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Annulation en ligne, créneau remis en vente</li>
-                  <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Avis clients sur votre page</li>
-                </ul>
-                <p class="offre-ancre">
-                  La première réservation du mois paie l'abonnement, même une coupe à
-                  25&nbsp;€, et toutes les suivantes sont pour vous.
-                </p>
-                <a class="bouton" href="#essai">
-                  Tester Subitis
-                  <i aria-hidden="true">
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                      <path d="M4.5 11.5L11.5 4.5M11.5 4.5H5.5M11.5 4.5V10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                  </i>
-                </a>
-              </div>
-            </div>
-
-            <div class="offre-colonne">
-              <div class="offre reveal">
-                <h3 class="offre-nom">Premium</h3>
-                <div class="prix-chiffre nb">39&nbsp;€ <small>/ mois</small></div>
-                <p>
-                  Tout Classique, plus la visibilité renforcée&nbsp;: profil mis en avant,
-                  statistiques de votre page (visites, clics, avis) et partage de profil
-                  en un geste.
-                </p>
-              </div>
-              <div class="offre reveal">
-                <h3 class="offre-nom">Sur-mesure</h3>
-                <div class="prix-mot">Sur devis</div>
-                <p>
-                  Équipes, plusieurs adresses, besoins particuliers&nbsp;: on construit l'offre
-                  avec vous, et vous ne payez que ce qui vous sert.
-                </p>
-                <a class="bouton bouton-clair" href="#essai">
-                  En parler avec nous
-                  <i aria-hidden="true">
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                      <path d="M4.5 11.5L11.5 4.5M11.5 4.5H5.5M11.5 4.5V10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                  </i>
-                </a>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 

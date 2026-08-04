@@ -152,10 +152,21 @@ refaire l'opération si l'on change de police.
 
 Hero (texte + **l'agenda qui se remplit sous les yeux**) · le **calculateur de manque à
 gagner** · la **séquence épinglée** (un appareil, trois écrans qui se succèdent au
-défilement) · comment ça marche en trois étapes · **le modèle** (fond encre : les trois
-chiffres du marché, commission vs abonnement chiffré sur 60 €, écran des tarifs) · les trois
-offres (Classique 19 € / Premium 39 € — à valider / sur devis) · engagements + FAQ des vraies
-objections · le formulaire d'essai · le pied de page.
+défilement) · **l'abonnement** (trois cartes, la Premium en avant) · comment ça marche en
+trois étapes · **le modèle** (fond encre : les trois chiffres du marché, commission contre
+abonnement chiffré sur 60 €, écran des tarifs) · engagements + FAQ des vraies objections ·
+le formulaire d'essai · le pied de page.
+
+**Le prix arrive tôt, juste après la démonstration.** C'est la première chose qu'on cherche
+sur une page d'abonnement ; la faire attendre derrière deux sections de pédagogie fait
+remonter le visiteur à contresens. Le contre-positionnement (commission contre abonnement)
+vient après : il justifie un prix déjà connu au lieu de le préparer.
+
+**Les trois offres ont la même structure** — nom, à qui elle s'adresse, prix, liste,
+appel. Auparavant le Classique affichait six lignes et le Premium un simple paragraphe :
+payer plus semblait donner moins. La carte Premium est signalée par « Notre recommandation »,
+jamais par « la plus populaire » : nous n'avons aucune donnée d'usage, et cette page ne
+prétend à aucune traction.
 
 Le contenu s'appuie sur les documents de `plan-landing/` (BMC abonnement, fiche marché,
 personas) : les prix, les chiffres du marché (27 000 coiffeurs à domicile, revenu moyen sous
