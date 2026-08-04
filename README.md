@@ -1,11 +1,16 @@
-# Subitis — landing page
+# Subitis — landing pages
 
-One pager de recrutement des professionnels de la beauté qui se déplacent, pilote Marseille.
-Livrable J2 de la Startup Week.
+Deux pages, un même socle, zéro dépendance :
 
-**Un seul fichier : `index.html`, 187 Ko, entièrement autonome.** Aucun framework, aucune
-dépendance, aucune étape de build, aucune requête réseau. On l'ouvre, on le modifie, on le
-publie.
+| Fichier | Rôle |
+| --- | --- |
+| **`index.html`** | La landing **généraliste** : recruter des professionnels de la beauté (barbier, coiffure, esthétique, onglerie, maquillage) pour qu'ils testent la plateforme d'abonnement. |
+| `marseille.html` | L'ancienne landing du pilote Marseille (pros mobiles), conservée telle quelle. |
+
+**Chaque fichier est entièrement autonome.** Aucun framework, aucune étape de build, aucune
+requête réseau — les polices sont embarquées en base64. On l'ouvre, on le modifie, on le publie.
+Seule `marseille.html` a besoin du dossier `photos/` ; `index.html` n'a **aucune image** : les
+écrans du produit sont dessinés en HTML/CSS.
 
 ---
 
@@ -24,15 +29,17 @@ vers Google**. Pas de fausse balise en production, rien à déclarer côté RGPD
 Ensuite : **republier**. C'est l'oubli classique — une balise collée en local ne remonte pas.
 Vérifier dans **GA4 → Rapports → Temps réel**, en navigation privée.
 
-Trois événements sont déjà câblés :
+Les événements câblés sur `index.html` :
 
 | Événement | Déclenché quand | Sert à |
 | --- | --- | --- |
-| `candidature_pro` | un professionnel envoie le formulaire | KPI n° 1 — inscriptions |
-| `interet_cliente` | ouverture du bloc « je cherche une prestation » | **KPI n° 3 — signal de demande** |
-| `demande_cliente` | le mini-formulaire de demande est envoyé | qualifie ce même signal |
+| `essai_pro` | un professionnel envoie le formulaire d'essai | KPI n° 1 — inscriptions |
+| `calcul_manque_a_gagner` | le calculateur est manipulé (une fois par visite, avec les valeurs réglées) | mesurer si l'argument central accroche |
 
-### 2. La destination des formulaires
+(`marseille.html` garde ses trois événements historiques : `candidature_pro`,
+`interet_cliente`, `demande_cliente`.)
+
+### 2. La destination du formulaire
 
 Dans le `<script>` en bas de page :
 
@@ -42,17 +49,21 @@ const ENDPOINT = '';
 
 | Option | Adresse | Pourquoi |
 | --- | --- | --- |
-| **HubSpot** | `https://api.hsforms.com/submissions/v3/integration/submit/<portalId>/<formId>` | Le lien CRM est natif. La capture d'écran du J3 est acquise sans étape de plus |
-| Formspree | `https://formspree.io/f/<identifiant>` | Deux minutes, à relier à HubSpot par Make au J3 |
+| **HubSpot** | `https://api.hsforms.com/submissions/v3/integration/submit/<portalId>/<formId>` | Le lien CRM est natif |
+| Formspree | `https://formspree.io/f/<identifiant>` | Deux minutes à mettre en place |
 | Tally | `https://tally.so/r/<identifiant>` | Idem |
 
 **Tant que `ENDPOINT` est vide, rien n'est envoyé et la page le dit.** Elle affiche un
-avertissement explicite au lieu d'un « merci » mensonger. Une candidature perdue sans que
-personne ne le sache est pire que pas de formulaire — et la consigne du J2 liste « ça marche
-sans preuve » parmi les erreurs sanctionnées.
+avertissement explicite au lieu d'un « merci » mensonger. Une demande d'essai perdue sans que
+personne ne le sache est pire que pas de formulaire.
 
-Après l'avoir renseigné : **republier, envoyer une vraie candidature de test, vérifier qu'elle
+Après l'avoir renseigné : **republier, envoyer une vraie demande de test, vérifier qu'elle
 arrive.**
+
+### À valider aussi avant publication
+
+Le prix **Premium à 49 €/mois** est un provisoire, marqué `PREMIUM : prix et contenu À VALIDER`
+en commentaire HTML dans la section `#offres`. Le Standard à 29 € vient du brief.
 
 ---
 
@@ -62,43 +73,36 @@ arrive.**
 npx vercel --prod          # ou : Settings → Pages → Source main / racine sur GitHub
 ```
 
-**Tester le lien en navigation privée** avant de le déposer dans Tally. Un lien qui ne marche
-que sur la machine qui l'a créé vaut zéro.
-
-## Le PDF du livrable
-
-`Ctrl+P` → **paysage** → **Enregistrer au format PDF**. Environ 7 pages.
-
-Cocher **« Graphismes d'arrière-plan »** : sans cela, les deux sections sur fond encre sortent
-en blanc.
-
-Tout est déjà prévu : la barre de navigation et l'appel collant disparaissent, les blocs à
-révélation sont forcés visibles, le compteur du hero est figé à 540, les colonnes se resserrent.
-Un PDF prêt est aussi généré automatiquement dans `apercu/subitis-landing.pdf`.
-
----
+**Tester le lien en navigation privée** avant de le diffuser. Un lien qui ne marche que sur la
+machine qui l'a créé vaut zéro.
 
 ## Vérifier
 
 ```bash
-node outils/verifier.mjs
+node outils/verifier.mjs                 # vérifie index.html
+node outils/verifier.mjs marseille.html  # vérifie la page du pilote
 ```
 
-Ouvre un vrai Chromium et contrôle, en une passe :
+Ouvre un vrai Chromium (emprunté à `c:/Users/telmat/Desktop/hackaton-app`) et contrôle, en une
+passe :
 
 - **aucun défilement horizontal** de 320 à 1440 px (8 largeurs)
 - **cibles tactiles ≥ 44 px**, un seul `h1`, aucun saut de niveau, tout champ nommé
-- **contraste WCAG mesuré** sur une centaine de couples texte/fond, avec les ratios réels
-- **les 15 phrases imposées par le brief**, mot pour mot
-- aucune trace de l'ancien positionnement, aucun emoji, aucun mot creux
-- le **bloc de demande** s'ouvre, émet son événement GA4 et donne le focus au premier champ
-- les formulaires **avertissent** au lieu de simuler un envoi réussi
+- **contraste WCAG mesuré** sur ~150 couples texte/fond, fonds translucides composés
+- les **invariants de contenu** mot pour mot, et l'absence de tout nom de place de marché à
+  commission (le contre-positionnement attaque le modèle, pas une enseigne)
+- le **calculateur** : 45 € × 3 × 4 = 540 par défaut, recalcul instantané, formatage des
+  grands montants, événement GA4 émis une seule fois, `aria-live` présent
+- les **cinq écrans de téléphone** : `role="img"` + description, aucun élément interactif ni
+  titre dans les interfaces factices
+- le formulaire **avertit** au lieu de simuler un envoi réussi
 - **aucune transition au-delà de 300 ms**, mouvement réduit respecté
 - **aucune requête vers l'extérieur** — les polices sont dans le fichier
-- impression : rien de vide, compteur figé, PDF généré
-- **navigation clavier** : chaque arrêt montre son contour de focus
+- impression : curseurs remplacés par la phrase-exemple, compteur figé à 540, PDF généré
+- **navigation clavier** : chaque arrêt montre son contour, la FAQ s'ouvre à Entrée
 
-Il produit aussi `apercu/landing-{390,768,1280}.png`.
+Il produit aussi `apercu/landing-{390,768,1280}.png` et `apercu/subitis-landing.pdf`
+(`marseille-*.png` et `marseille.pdf` pour l'autre page).
 
 ## Regénérer les polices
 
@@ -106,50 +110,56 @@ Il produit aussi `apercu/landing-{390,768,1280}.png`.
 node outils/embarquer-polices.mjs
 ```
 
-Ce n'est **pas** une étape de build : `index.html` est livré complet. Ce script ne sert qu'à
+Ce n'est **pas** une étape de build : les fichiers sont livrés complets. Ce script ne sert qu'à
 refaire l'opération si l'on change de police.
 
 ---
 
-## Ce que contient la page
+## Ce que contient `index.html`
 
-Hero · **l'inventaire périssable** (une semaine de créneaux dont trois s'éteignent, et
-l'addition qui aboutit à 540 €) · deux constats · comment ça marche en trois étapes ·
-**ce qu'on ne fait pas** avec le comparatif chiffré Wecasa · le prix · pourquoi nous faire
-confiance · le formulaire · le test côté demande · le pied de page.
-
-Le contenu vient mot pour mot de `hackathon/J2/BRIEF-LANDING-PAGE.md`. Il n'a pas été reformulé.
-
-**Une seule page, aucune sous-page.** Le seul lien sortant est la source Wecasa, en `nofollow`.
+Hero (texte + **écran d'agenda qui se remplit**) · le **calculateur de manque à gagner** ·
+trois douleurs / trois écrans (réservation 24 h/24, annulations gérées, page référencée) ·
+comment ça marche en trois étapes · **le modèle** (fond encre : commission vs abonnement,
+tableau chiffré, écran des prix) · les trois offres (29 € / 49 € à valider / sur devis) ·
+engagements + FAQ (dont Planity) · le formulaire d'essai · le pied de page.
 
 ## Les décisions qui ont une raison
 
-**L'inventaire périssable est dessiné, pas décrit.** Trois créneaux sur vingt s'éteignent sous
-les yeux, et l'addition fait le calcul : `3 × 45 € × 4 semaines = 540 €`. C'est la thèse rendue
-visible, et personne d'autre ne l'aura.
+**Aucune photo de persona.** Une photo de barbier braque l'esthéticienne, et inversement. Ce que
+la page montre, c'est **le produit** : cinq écrans de l'application dessinés en pur HTML/CSS,
+dans des coques de téléphone qui déclinent le double-liseré maison. Aucune capture d'écran non
+plus — l'application porte encore l'ancien nom.
 
-**Le contre-positionnement est démontré, pas affirmé.** Sur une prestation à 45 €, la commission
-Wecasa prélève 11,25 € — il reste 33,75 € au lieu de 45. Sur 12 prestations, elle prélève 135 €
-quand l'abonnement en coûte 29. **Dès la troisième prestation du mois, l'abonnement revient moins
-cher que la commission.** Tous ces chiffres dérivent du brief, aucun n'est inventé.
+**Le chiffre-choc n'est pas inventé, il est calculé par le visiteur.** « Vos créneaux valent
+X € » est faux par nature : un barbier à 15 € et une prothésiste à 80 € ne perdent pas la même
+chose. Le calculateur (prix moyen × créneaux vides × 4 semaines) rend le chiffre personnel —
+et la page le dit explicitement. Défaut : 45 € × 3 = 540 €/mois, l'ancre héritée du brief.
 
-**Le formulaire qualifie l'ICP.** La question « vous déplacez-vous chez la cliente ? » est dans
-le formulaire, pas dans l'appel de rappel. Un « non » sort de la cible avant qu'on décroche.
+**Le contre-positionnement attaque le modèle, pas une enseigne.** Exemple générique au taux de
+25 %, courant sur les places de marché beauté ; aucun concurrent à commission n'est nommé (le
+vérificateur y veille). Planity, qui est un abonnement, est traité en FAQ — sur le prix.
 
-**Anti-spam sans captcha** : un pot de miel invisible et un délai minimal de saisie de 1,5 s. Un
-captcha ferait chuter la conversion sur le canal principal, le message privé Instagram.
+**Les étoiles vivent dans l'interface, pas dans la page.** Le 4,9 (48 avis) de l'écran D est
+une fonctionnalité du produit (le module d'avis), présentée dans une interface factice décrite
+comme telle. La page elle-même n'affiche **aucune traction** : pas de compteur d'inscrits, pas
+de témoignage — « Subitis démarre » est assumé dans la section engagements.
 
-**Aucune traction affichée.** Pas de compteur d'inscrits, pas de témoignage, pas de logo de
-presse. L'équipe démarre à zéro et la page ne prétend pas le contraire.
+**La visibilité n'est jamais « des clients garantis ».** La formulation exacte, partout : « une
+page de réservation professionnelle, référencée, à votre nom ».
 
-**Palette, typographie et double-liseré identiques au produit.** Le jury verra la landing puis
-l'application : les deux doivent se reconnaître.
+**Interfaces factices, règles dures.** Aucun `a`, `button`, `input` ni titre dans les écrans
+dessinés (sinon cibles tactiles, focus et hiérarchie de titres cassent) ; les noms de clients
+sont des barres neutres ; chaque écran porte `role="img"` et une description complète.
+
+**Palette, typographie et double-liseré identiques au produit et à `marseille.html`.** Les deux
+landings et l'application doivent se reconnaître.
 
 ## Limites connues
 
-- La page fait 9 écrans sur mobile. C'est long, mais chaque section répond à une objection
-  identifiée. À raccourcir seulement si la mesure montre un abandon avant le formulaire.
-- Aucune capture du produit n'est intégrée : l'application porte encore l'ancien nom. À ajouter
-  après son renommage — ce sera le meilleur argument de la page.
+- Le prix Premium (49 €) et son contenu sont des provisoires à valider — voir plus haut.
+- Les écrans dessinés ne remplaceront jamais une vraie capture : quand l'application sera
+  renommée, une capture réelle dans la coque de téléphone sera le meilleur argument.
 - Les polices sont embarquées en latin de base uniquement. Un prénom en cyrillique ou en grec
   retomberait sur la police système.
+- `outils/verifier.mjs` emprunte Playwright à `c:/Users/telmat/Desktop/hackaton-app` : si ce
+  dépôt bouge, ajuster la ligne `createRequire` en tête de script.
