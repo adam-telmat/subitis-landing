@@ -62,8 +62,12 @@ arrive.**
 
 ### À valider aussi avant publication
 
-Le prix **Premium à 49 €/mois** est un provisoire, marqué `PREMIUM : prix et contenu À VALIDER`
-en commentaire HTML dans la section `#offres`. Le Standard à 29 € vient du brief.
+Les prix **Classique 19 €/mois** et **Premium 39 €/mois** viennent du Business Model Canvas
+(`plan-landing/SUBITIS_BMC_Abonnement.pdf`), qui les marque lui-même « à valider » — c'est
+précisément le doute n° 1 du J1. Ils sont signalés en commentaire HTML dans la section
+`#offres`. Si les entretiens tranchent d'autres montants, penser aussi au calculateur
+(l'équivalence « Soit N fois l'abonnement Classique à 19 € » est calculée en JS) et au
+comparatif (« l'abonnement en coûte 19 »).
 
 ---
 
@@ -119,9 +123,16 @@ refaire l'opération si l'on change de police.
 
 Hero (texte + **écran d'agenda qui se remplit**) · le **calculateur de manque à gagner** ·
 trois douleurs / trois écrans (réservation 24 h/24, annulations gérées, page référencée) ·
-comment ça marche en trois étapes · **le modèle** (fond encre : commission vs abonnement,
-tableau chiffré, écran des prix) · les trois offres (29 € / 49 € à valider / sur devis) ·
-engagements + FAQ (dont Planity) · le formulaire d'essai · le pied de page.
+comment ça marche en trois étapes · **le modèle** (fond encre : les trois chiffres du marché,
+commission vs abonnement chiffré sur 60 €, écran des prix) · les trois offres (Classique 19 € /
+Premium 39 € — à valider / sur devis) · engagements + FAQ des vraies objections · le
+formulaire d'essai · le pied de page.
+
+Le contenu s'appuie sur les documents de `plan-landing/` (BMC abonnement, fiche marché,
+personas) : les prix, les chiffres du marché (27 000 coiffeurs à domicile, revenu moyen sous
+le SMIC, commission du leader passée de 16 % à 25 %), l'exemple du comparatif (60 € → 45 €
+après commission) et les objections de la FAQ (« J'ai déjà Instagram », « Je ne veux pas être
+noté », « Pas le temps d'un nouvel outil ») viennent de là, pas de l'imagination.
 
 ## Les décisions qui ont une raison
 
@@ -156,7 +167,7 @@ landings et l'application doivent se reconnaître.
 
 ## Limites connues
 
-- Le prix Premium (49 €) et son contenu sont des provisoires à valider — voir plus haut.
+- Les prix (19 € / 39 €) sont ceux du BMC, à valider par les entretiens — voir plus haut.
 - Les écrans dessinés ne remplaceront jamais une vraie capture : quand l'application sera
   renommée, une capture réelle dans la coque de téléphone sera le meilleur argument.
 - Les polices sont embarquées en latin de base uniquement. Un prénom en cyrillique ou en grec

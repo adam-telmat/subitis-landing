@@ -209,7 +209,7 @@ const PHRASES_INDEX = [
   'remboursé par une seule prestation',
   'page de réservation professionnelle, référencée, à votre nom',
   'Un créneau non vendu à 14 h est perdu à 15 h',
-  '29 €',
+  '19 €',
   'Pourquoi êtes-vous moins cher que Planity',
 ];
 const PHRASES_MARSEILLE = [

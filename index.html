@@ -1031,6 +1031,33 @@
         display: grid;
         gap: 2.5rem;
       }
+      /* Les trois chiffres du marché : une bande de données, pas des cartes. */
+      .marche {
+        margin-top: 2.25rem;
+        margin-bottom: 2.5rem;
+        display: grid;
+        gap: 1.25rem;
+      }
+      .marche > div {
+        border-left: 2px solid var(--rose-600);
+        padding-left: 1rem;
+        display: grid;
+        gap: 0.2rem;
+        align-content: start;
+      }
+      .marche-chiffre {
+        font-family: var(--display);
+        font-size: 1.9rem;
+        font-weight: 300;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+        color: var(--canvas);
+      }
+      .marche-libelle {
+        font-size: 0.8125rem;
+        color: rgba(251, 249, 246, 0.68);
+        max-width: 30ch;
+      }
       .refus {
         margin-top: 2.25rem;
       }
@@ -1456,6 +1483,10 @@
         .offres-grille {
           grid-template-columns: 1.2fr 0.8fr;
         }
+        .marche {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 2rem;
+        }
         .pied {
           grid-template-columns: 1fr auto;
           align-items: end;
@@ -1601,6 +1632,10 @@
           grid-template-columns: 1fr 1fr !important;
           column-gap: 2rem !important;
         }
+        .marche {
+          grid-template-columns: repeat(3, 1fr) !important;
+          break-inside: avoid;
+        }
         .tel-coque {
           width: 210px !important;
           transform: none !important;
@@ -1699,7 +1734,7 @@
       <section class="hero">
         <div class="contenant hero-grille">
           <div>
-            <span class="eyebrow">Barbiers · Coiffure · Esthétique · Onglerie · Maquillage</span>
+            <span class="eyebrow">Barbiers · Coiffure · Esthétique · Onglerie · Maquillage · Bien-être</span>
             <h1>Vos clients réservent seuls. <em>Votre agenda se remplit pendant que vous travaillez.</em></h1>
             <p class="chapeau">
               Subitis vous donne une page de réservation professionnelle, référencée, à votre nom.
@@ -1787,7 +1822,7 @@
                 <div class="montant nb"><span id="calc-total">540</span>&nbsp;€</div>
                 <div class="unite">de manque à gagner par mois</div>
                 <hr />
-                <p class="detail" id="calc-equiv">Soit 18 fois l'abonnement Standard à 29&nbsp;€. Un créneau non vendu à 14&nbsp;h est perdu à 15&nbsp;h&nbsp;: il ne se reporte pas.</p>
+                <p class="detail" id="calc-equiv">Soit 28 fois l'abonnement Classique à 19&nbsp;€. Un créneau non vendu à 14&nbsp;h est perdu à 15&nbsp;h&nbsp;: il ne se reporte pas.</p>
               </div>
             </div>
           </div>
@@ -1951,6 +1986,14 @@
             est fixe — et vous le connaissez d'avance.
           </p>
 
+          <!-- Les trois chiffres qui rendent la douleur indiscutable.
+               Source : étude de marché Subitis (J1), données sectorielles publiques. -->
+          <div class="marche">
+            <div><span class="marche-chiffre nb">27&nbsp;000</span><span class="marche-libelle">coiffeurs à domicile en France — près du double en quelques années</span></div>
+            <div><span class="marche-chiffre nb">6&nbsp;500&nbsp;€</span><span class="marche-libelle">de revenu annuel moyen pour un coiffeur micro-entrepreneur — sous le SMIC</span></div>
+            <div><span class="marche-chiffre nb">16&nbsp;% → 25&nbsp;%</span><span class="marche-libelle">la commission du leader du domicile, en six ans</span></div>
+          </div>
+
           <div class="modele-haut">
             <div class="refus">
               <div><h3>Zéro commission.</h3><p>Abonnement fixe. 12 ou 60 réservations dans le mois, le prix ne bouge pas.</p></div>
@@ -1980,30 +2023,31 @@
           </div>
 
           <div class="comparatif">
-            <h3>Sur une prestation à 45&nbsp;€, ce qui reste dans votre poche</h3>
+            <h3>Sur une prestation à 60&nbsp;€, ce qui reste dans votre poche</h3>
             <table>
               <thead>
                 <tr><th scope="col">&nbsp;</th><th scope="col">Place de marché à 25&nbsp;%</th><th scope="col">Subitis</th></tr>
               </thead>
               <tbody>
-                <tr><td>Prix de la prestation</td><td class="nb">45,00&nbsp;€</td><td class="nb">45,00&nbsp;€</td></tr>
+                <tr><td>Prix de la prestation</td><td class="nb">60,00&nbsp;€</td><td class="nb">60,00&nbsp;€</td></tr>
                 <tr><td>Qui fixe ce prix</td><td class="eux">Eux</td><td class="nous">Vous</td></tr>
-                <tr><td>Commission prélevée</td><td class="eux nb">−&nbsp;11,25&nbsp;€</td><td class="nous nb">−&nbsp;0,00&nbsp;€</td></tr>
+                <tr><td>Commission prélevée</td><td class="eux nb">−&nbsp;15,00&nbsp;€</td><td class="nous nb">−&nbsp;0,00&nbsp;€</td></tr>
               </tbody>
               <tfoot>
-                <tr><td>Il vous reste</td><td class="eux nb">33,75&nbsp;€</td><td class="nous nb">45,00&nbsp;€</td></tr>
+                <tr><td>Il vous reste</td><td class="eux nb">45,00&nbsp;€</td><td class="nous nb">60,00&nbsp;€</td></tr>
               </tfoot>
             </table>
             <p class="bilan">
-              À 12 prestations dans le mois, la commission prélève <strong class="nb">135&nbsp;€</strong>.
-              L'abonnement Subitis en coûte <strong class="nb">29</strong>, que vous en fassiez 12 ou 60.
-              <strong>Dès la troisième prestation du mois, l'abonnement revient moins cher.</strong>
+              À 12 prestations dans le mois, la commission prélève <strong class="nb">180&nbsp;€</strong>.
+              L'abonnement Subitis en coûte <strong class="nb">19</strong>, que vous en fassiez 12 ou 60.
+              <strong>Dès la deuxième prestation du mois, l'abonnement revient moins cher.</strong>
             </p>
           </div>
 
           <p class="source">
-            Exemple au taux de 25&nbsp;%, courant sur les places de marché beauté. Aucun nom&nbsp;:
-            le problème est le modèle, pas une enseigne.
+            Exemple au taux de 25&nbsp;% relevé chez le leader de la beauté à domicile — il était de
+            16&nbsp;% HT en 2018. Aucun nom sur cette page&nbsp;: le problème est le modèle, pas une
+            enseigne. Chiffres du marché&nbsp;: étude Subitis, données sectorielles publiques.
           </p>
         </div>
       </section>
@@ -2021,8 +2065,9 @@
           <div class="offres-grille">
             <div class="coque offre-principale">
               <div class="coeur">
-                <h3 class="offre-nom">Standard</h3>
-                <div class="prix-chiffre nb">29&nbsp;€ <small>/ mois</small></div>
+                <!-- CLASSIQUE 19 € et PREMIUM 39 € : prix du BMC, À VALIDER avant publication. -->
+                <h3 class="offre-nom">Classique</h3>
+                <div class="prix-chiffre nb">19&nbsp;€ <small>/ mois</small></div>
                 <ul class="offre-liste">
                   <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Page de réservation référencée, à votre nom</li>
                   <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Agenda et réservation en ligne 24&nbsp;h/24</li>
@@ -2031,8 +2076,8 @@
                   <li><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#4F6B55" stroke-width="1.3" /><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#4F6B55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>Avis clients sur votre page</li>
                 </ul>
                 <p class="offre-ancre">
-                  Une prestation entre 30 et 80&nbsp;€ selon votre métier&nbsp;: la première
-                  réservation du mois paie l'abonnement, toutes les suivantes sont pour vous.
+                  La première réservation du mois paie l'abonnement — même une coupe à
+                  25&nbsp;€ — et toutes les suivantes sont pour vous.
                 </p>
                 <a class="bouton" href="#essai">
                   Tester Subitis
@@ -2046,13 +2091,13 @@
             </div>
 
             <div class="offre-colonne">
-              <!-- PREMIUM : prix et contenu À VALIDER avant publication. -->
               <div class="offre">
                 <h3 class="offre-nom">Premium</h3>
-                <div class="prix-chiffre nb">49&nbsp;€ <small>/ mois</small></div>
+                <div class="prix-chiffre nb">39&nbsp;€ <small>/ mois</small></div>
                 <p>
-                  Tout Standard, avec rappels par SMS, plusieurs agendas et une page personnalisée
-                  à vos couleurs.
+                  Tout Classique, plus la visibilité renforcée&nbsp;: profil mis en avant,
+                  statistiques de votre page — visites, clics, avis — et partage de profil
+                  en un geste.
                 </p>
               </div>
               <div class="offre">
@@ -2101,7 +2146,24 @@
           </div>
 
           <div class="faq">
-            <h3>Les questions qu'on nous pose</h3>
+            <h3>Les objections qu'on nous fait vraiment</h3>
+            <details>
+              <summary>«&nbsp;J'ai déjà Instagram, ça me suffit.&nbsp;»</summary>
+              <p>
+                Instagram fait découvrir, il ne fait pas réserver. Les demandes arrivent en
+                messages privés, à caler à la main, à toute heure. Subitis est le lien que vous
+                mettez en bio&nbsp;: on vous découvre sur Instagram, on réserve sur votre page —
+                sans vous interrompre.
+              </p>
+            </details>
+            <details>
+              <summary>«&nbsp;Les plateformes prennent une commission.&nbsp;»</summary>
+              <p>
+                Pas ici. Jamais. Le prix payé par votre client vous revient en entier — c'est le
+                modèle, pas une promotion de lancement. Sur une coupe à 25&nbsp;€, il vous reste
+                25&nbsp;€.
+              </p>
+            </details>
             <details>
               <summary>Pourquoi êtes-vous moins cher que Planity&nbsp;?</summary>
               <p>
@@ -2111,17 +2173,19 @@
               </p>
             </details>
             <details>
-              <summary>Prenez-vous une commission sur mes réservations&nbsp;?</summary>
+              <summary>«&nbsp;Je ne veux pas être noté comme sur les grandes plateformes.&nbsp;»</summary>
               <p>
-                Non. Jamais. Le prix payé par votre client vous revient en entier — c'est le
-                modèle, pas une promotion de lancement.
+                Les avis restent sur votre page, attachés à de vrais rendez-vous passés par elle.
+                Vous n'êtes pas classé dans une liste face à vos concurrents&nbsp;: c'est votre
+                vitrine, pas un annuaire.
               </p>
             </details>
             <details>
-              <summary>Il me faut déjà un site&nbsp;?</summary>
+              <summary>«&nbsp;Je n'ai pas le temps d'apprendre un nouvel outil.&nbsp;»</summary>
               <p>
-                Non. Votre page Subitis est votre site&nbsp;: un lien à mettre en bio Instagram,
-                sur WhatsApp ou sur votre fiche Google.
+                Il n'y a rien à apprendre&nbsp;: vos prestations, vos prix, vos horaires — et
+                votre page existe. La plupart des professionnels la publient le jour même, et on
+                peut la configurer avec vous.
               </p>
             </details>
             <details>
@@ -2129,13 +2193,6 @@
               <p>
                 Il annule en ligne, vous êtes prévenu par email, et le créneau libéré est aussitôt
                 remis en vente sur votre page.
-              </p>
-            </details>
-            <details>
-              <summary>Combien de temps pour démarrer&nbsp;?</summary>
-              <p>
-                Le temps de saisir vos prestations et vos prix. La plupart des professionnels
-                publient leur page le jour même — et on peut le faire avec vous.
               </p>
             </details>
           </div>
@@ -2151,6 +2208,10 @@
             <p class="sous-titre">
               Prénom, métier, zone, un canal pour vous répondre&nbsp;: on vous ouvre un accès
               d'essai et on configure votre page avec vous.
+            </p>
+            <p class="sous-titre">
+              Juillet est le mois le plus creux de l'année en coiffure. La rentrée, elle, se
+              réserve maintenant.
             </p>
           </div>
 
@@ -2173,6 +2234,7 @@
                     <option>Esthéticien·ne</option>
                     <option>Prothésiste ongulaire</option>
                     <option>Maquilleur·euse</option>
+                    <option>Masseur·se / Bien-être</option>
                   </select>
                 </div>
 
@@ -2223,7 +2285,7 @@
           <div class="marque">Subitis</div>
           <p style="margin-top: 0.45rem">
             La réservation en ligne des professionnels de la beauté. Barbier, coiffure,
-            esthétique, onglerie, maquillage.
+            esthétique, onglerie, maquillage, bien-être.
           </p>
         </div>
         <p>
@@ -2289,10 +2351,10 @@
         const phrase = () => {
           if (vides.valueAsNumber === 0)
             return 'Zéro créneau vide ? Il reste le téléphone qui sonne en pleine prestation — la suite de la page vous concerne quand même.';
-          const n = Math.floor(mensuel() / 29);
-          if (n < 2) return "Un seul créneau repris rembourse l'abonnement Standard à 29 €.";
+          const n = Math.floor(mensuel() / 19);
+          if (n < 2) return "Un seul créneau repris rembourse l'abonnement Classique à 19 €.";
           return (
-            'Soit ' + n + " fois l'abonnement Standard à 29 €. Un créneau non vendu à 14 h est perdu à 15 h : il ne se reporte pas."
+            'Soit ' + n + " fois l'abonnement Classique à 19 €. Un créneau non vendu à 14 h est perdu à 15 h : il ne se reporte pas."
           );
         };
 
