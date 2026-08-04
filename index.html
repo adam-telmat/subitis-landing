@@ -416,38 +416,86 @@
         flex: none;
       }
 
-      .ardoise {
+      /* La scene du hero : un fond dessine, et le chiffre pose dessus.
+         Deux couches, pas un aplat — c'est ce qui donne la profondeur. */
+      .scene {
+        /* Fond encre SOUS le dessin : si le SVG ne rend pas, le texte clair
+           reste lisible. Un visuel decoratif ne doit jamais conditionner la
+           lisibilite de ce qu'il porte. */
         background: var(--ink-900);
-        color: var(--canvas);
+        position: relative;
         border-radius: var(--shell);
-        padding: 2rem 1.6rem;
+        overflow: hidden;
         box-shadow: var(--ombre-haute);
+        isolation: isolate;
+        min-height: 340px;
+        display: flex;
+        align-items: flex-end;
       }
-      .ardoise .montant {
+      .scene-fond {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+      }
+      .scene::after {
+        content: '';
+        position: absolute;
+        inset: auto 0 0 0;
+        height: 62%;
+        z-index: 0;
+        background: linear-gradient(to top, #17110f 32%, rgba(23, 17, 15, 0.82) 62%, rgba(23, 17, 15, 0));
+        pointer-events: none;
+      }
+      .scene-contenu {
+        position: relative;
+        z-index: 1;
+        padding: 2rem 1.6rem;
+        color: var(--canvas);
+        width: 100%;
+      }
+      .defs-art {
+        position: absolute;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+      }
+      .logo {
+        display: grid;
+        place-items: center;
+        flex: none;
+      }
+      .marque {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+      }
+      .scene .montant {
         font-family: var(--display);
         font-size: clamp(3.2rem, 12vw, 5rem);
         font-weight: 300;
         line-height: 0.9;
         letter-spacing: -0.04em;
       }
-      .ardoise .unite {
+      .scene .unite {
         font-size: 0.8125rem;
         letter-spacing: 0.18em;
         text-transform: uppercase;
         color: rgba(251, 249, 246, 0.6);
         margin-top: 0.85rem;
       }
-      .ardoise hr {
+      .scene hr {
         border: 0;
         border-top: 1px solid rgba(251, 249, 246, 0.16);
         margin-block: 1.35rem;
       }
-      .ardoise .detail {
+      .scene .detail {
         font-size: 0.875rem;
         color: rgba(251, 249, 246, 0.78);
         line-height: 1.6;
       }
-      .ardoise .detail strong {
+      .scene .detail strong {
         color: var(--canvas);
       }
 
@@ -581,6 +629,18 @@
         font-size: 0.9375rem;
       }
 
+      /* Vignettes dessinées : du trait fin, jamais de photo de banque
+         d’images. Elles portent le sens, pas la décoration. */
+      .vignette {
+        width: 100%;
+        max-width: 148px;
+        height: auto;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 1.2;
+      }
+
       /* ----------------------------- Étapes ----------------------------- */
       .etapes {
         margin-top: 2.25rem;
@@ -589,9 +649,13 @@
         display: grid;
         grid-template-columns: 3rem 1fr;
         gap: 1rem;
-        padding-block: 1.5rem;
+        padding-block: 1.35rem;
         border-top: 1px solid var(--line);
-        align-items: start;
+        align-items: center;
+      }
+      .etape .vignette {
+        grid-column: 2;
+        margin-top: 0.75rem;
       }
       .etape:last-child {
         border-bottom: 1px solid var(--line);
@@ -624,7 +688,7 @@
       .negatif h3,
       .negatif th,
       .negatif strong,
-      .ardoise strong,
+      .scene strong,
       .collant strong {
         color: var(--canvas);
       }
@@ -1011,6 +1075,15 @@
           height: 40px;
           font-size: 0.6875rem;
         }
+        .etape {
+          grid-template-columns: 3rem 1fr 148px;
+          gap: 1rem 2.5rem;
+        }
+        .etape .vignette {
+          grid-column: 3;
+          grid-row: 1;
+          margin-top: 0;
+        }
         .prix-grille,
         .constats {
           grid-template-columns: 1fr 1fr;
@@ -1040,9 +1113,12 @@
 
       @media (min-width: 1000px) {
         .hero-grille {
-          grid-template-columns: 1.15fr 0.85fr;
+          grid-template-columns: 1.1fr 0.9fr;
           gap: 3.5rem;
           align-items: center;
+        }
+        .scene {
+          min-height: 520px;
         }
         .form-grille {
           display: grid;
@@ -1134,7 +1210,8 @@
         .prix-grille {
           grid-template-columns: 1fr 1fr !important;
         }
-        .ardoise,
+        .scene-fond,
+        .scene,
         .negatif,
         .creneau {
           -webkit-print-color-adjust: exact;
@@ -1169,9 +1246,46 @@
     <a class="evitement" href="#contenu">Aller au contenu principal</a>
     <div class="grain" aria-hidden="true"></div>
 
+    <svg class="defs-art" aria-hidden="true" focusable="false" width="0" height="0">
+      <defs>
+        <linearGradient id="gRose" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#B84A5E" stop-opacity=".95" />
+          <stop offset="55%" stop-color="#8C3145" stop-opacity=".85" />
+          <stop offset="100%" stop-color="#3D332E" stop-opacity=".9" />
+        </linearGradient>
+        <linearGradient id="gCreme" x1="0" y1="0" x2="0.7" y2="1">
+          <stop offset="0%" stop-color="#FBF3F4" />
+          <stop offset="100%" stop-color="#F4F0EA" />
+        </linearGradient>
+        <linearGradient id="gSauge" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%" stop-color="#4F6B55" stop-opacity=".9" />
+          <stop offset="100%" stop-color="#A8D5B5" stop-opacity=".55" />
+        </linearGradient>
+        <radialGradient id="gHalo" cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stop-color="#B84A5E" stop-opacity=".55" />
+          <stop offset="60%" stop-color="#8C3145" stop-opacity=".18" />
+          <stop offset="100%" stop-color="#17110F" stop-opacity="0" />
+        </radialGradient>
+        <filter id="fFlou" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="26" />
+        </filter>
+        <filter id="fFlouDoux" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="12" />
+        </filter>
+      </defs>
+    </svg>
+
+
     <header class="barre">
       <div class="pilule">
-        <div class="marque">Subitis <small>Pilote Marseille</small></div>
+        <div class="marque"><span class="logo" aria-hidden="true">
+            <svg viewBox="0 0 34 34" width="30" height="30">
+              <circle cx="17" cy="17" r="16" fill="none" stroke="#17110F" stroke-width="1.1" opacity=".22" />
+              <!-- L'arc plein : le creneau vendu. Le reste du cercle : ce qu'il reste a vendre. -->
+              <path d="M17 1a16 16 0 0 1 13.9 23.9" fill="none" stroke="#A03A4E" stroke-width="2.4" stroke-linecap="round" />
+              <circle cx="17" cy="17" r="4.6" fill="#17110F" />
+            </svg>
+          </span><span>Subitis <small>Pilote Marseille</small></span></div>
         <a class="bouton" href="#candidature">
           Publier mes créneaux libres
           <i aria-hidden="true">
@@ -1214,16 +1328,43 @@
             </div>
           </div>
 
-          <div class="ardoise">
-            <div class="montant nb"><span id="compteur">540</span>&nbsp;€</div>
-            <div class="unite">détruits chaque mois</div>
-            <hr />
-            <p class="detail">
-              Trois créneaux non remplis par semaine, à 45&nbsp;€. Près de
-              <strong class="nb">6&nbsp;500&nbsp;€ par an</strong>. Un créneau non vendu à 14&nbsp;h
-              est perdu à 15&nbsp;h&nbsp;: il ne se reporte pas.
-            </p>
-          </div>
+          <figure class="scene">
+            <svg class="scene-fond" viewBox="0 0 640 520" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <rect width="640" height="520" fill="#17110F" />
+              <!-- Lumiere de studio, en haut a gauche. -->
+              <ellipse cx="180" cy="110" rx="330" ry="250" fill="url(#gHalo)" />
+              <!-- Nappes organiques floutees : de la matiere, pas des aplats. -->
+              <path d="M-60 380c150-90 230 30 370-50s190-190 390-130v340H-60z" fill="url(#gRose)" opacity=".34" filter="url(#fFlou)" />
+              <path d="M80 190c110 70 70 200 230 210s210-100 340-50" fill="none" stroke="#B84A5E" stroke-width="70" opacity=".13" filter="url(#fFlou)" />
+              <!-- Arc de marque, a l'echelle de la scene. -->
+              <g transform="translate(468 132)" opacity=".6">
+                <circle r="104" fill="none" stroke="#FBF9F6" stroke-width="1" opacity=".18" />
+                <path d="M0-104a104 104 0 0 1 90 155" fill="none" stroke="#B84A5E" stroke-width="3.2" stroke-linecap="round" />
+                <circle r="7" fill="#FBF9F6" opacity=".3" />
+              </g>
+              <!-- Une journee de creneaux, deux restent ouverts. Placee haut :
+                   le tiers bas du cadre appartient au texte. -->
+              <g transform="translate(52 236)">
+                <rect x="0" y="0" width="72" height="17" rx="5" fill="#FBF9F6" opacity=".16" />
+                <rect x="82" y="0" width="72" height="17" rx="5" fill="#FBF9F6" opacity=".16" />
+                <rect x="164" y="0" width="72" height="17" rx="5" fill="none" stroke="#B84A5E" stroke-width="1.3" stroke-dasharray="3.5 3.5" />
+                <rect x="246" y="0" width="72" height="17" rx="5" fill="#FBF9F6" opacity=".16" />
+                <rect x="328" y="0" width="72" height="17" rx="5" fill="none" stroke="#B84A5E" stroke-width="1.3" stroke-dasharray="3.5 3.5" />
+                <rect x="410" y="0" width="72" height="17" rx="5" fill="#FBF9F6" opacity=".16" />
+              </g>
+            </svg>
+
+            <figcaption class="scene-contenu">
+              <div class="montant nb"><span id="compteur">540</span>&nbsp;€</div>
+              <div class="unite">détruits chaque mois</div>
+              <hr />
+              <p class="detail">
+                Trois créneaux non remplis par semaine, à 45&nbsp;€. Près de
+                <strong class="nb">6&nbsp;500&nbsp;€ par an</strong>. Un créneau non vendu à
+                14&nbsp;h est perdu à 15&nbsp;h&nbsp;: il ne se reporte pas.
+              </p>
+            </figcaption>
+          </figure>
         </div>
       </section>
 
@@ -1291,6 +1432,22 @@
                 <h3>Vous publiez uniquement vos restes.</h3>
                 <p>Les créneaux que vous n’avez pas vendus. Pas votre agenda, pas vos habituées.</p>
               </div>
+              <svg viewBox="0 0 160 120" class="vignette" aria-hidden="true">
+                <rect x="12" y="18" width="136" height="86" rx="10" stroke="#E7E0D8" />
+                <path d="M12 42h136" stroke="#E7E0D8" />
+                <g fill="#17110F" stroke="none">
+                  <rect x="26" y="56" width="28" height="12" rx="3" />
+                  <rect x="62" y="56" width="28" height="12" rx="3" />
+                  <rect x="26" y="78" width="28" height="12" rx="3" />
+                </g>
+                <g transform="rotate(-8 112 56)">
+                  <rect x="98" y="50" width="32" height="13" rx="4" fill="#FBF3F4" stroke="#A03A4E" stroke-dasharray="3 3" />
+                </g>
+                <g transform="rotate(7 110 84)">
+                  <rect x="96" y="78" width="32" height="13" rx="4" fill="#FBF3F4" stroke="#A03A4E" stroke-dasharray="3 3" />
+                </g>
+                <path d="M131 50c12-7 17-16 18-27" stroke="#A03A4E" stroke-dasharray="2 4" />
+              </svg>
             </div>
             <div class="etape reveal">
               <div class="rang nb">02</div>
@@ -1298,6 +1455,17 @@
                 <h3>Une cliente proche réserve.</h3>
                 <p>Elle voit un créneau qui existe vraiment, elle réserve, vous acceptez ou vous refusez.</p>
               </div>
+              <svg viewBox="0 0 160 120" class="vignette" aria-hidden="true">
+                <circle cx="52" cy="60" r="34" stroke="#E7E0D8" />
+                <circle cx="52" cy="60" r="21" stroke="#E7E0D8" />
+                <circle cx="52" cy="60" r="4" fill="#17110F" stroke="none" />
+                <path d="M52 26a34 34 0 0 1 30 18" stroke="#A03A4E" stroke-width="1.7" />
+                <g transform="translate(102 42)">
+                  <rect width="46" height="16" rx="5" fill="#17110F" stroke="none" />
+                  <rect y="24" width="46" height="16" rx="5" stroke="#E7E0D8" />
+                </g>
+                <path d="M88 50h10" stroke="#A03A4E" stroke-width="1.7" />
+              </svg>
             </div>
             <div class="etape reveal">
               <div class="rang nb">03</div>
@@ -1305,6 +1473,14 @@
                 <h3>Vous encaissez, à votre prix, en direct.</h3>
                 <p>L’argent ne passe pas par nous.</p>
               </div>
+              <svg viewBox="0 0 160 120" class="vignette" aria-hidden="true">
+                <path d="M22 78c10-16 22-20 38-16" stroke="#17110F" stroke-width="1.6" />
+                <path d="M138 78c-10-16-22-20-38-16" stroke="#17110F" stroke-width="1.6" />
+                <circle cx="80" cy="50" r="16" stroke="#A03A4E" stroke-width="1.7" />
+                <path d="M73 50h14M80 43v14" stroke="#A03A4E" stroke-width="1.7" />
+                <path d="M42 96h76" stroke="#E7E0D8" />
+                <path d="M58 90l-6 6 6 6M102 90l6 6-6 6" stroke="#E7E0D8" />
+              </svg>
             </div>
           </div>
         </div>
