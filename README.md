@@ -60,12 +60,26 @@ const ENDPOINT = '';
 | Formspree | `https://formspree.io/f/<identifiant>` | Deux minutes à mettre en place |
 | Tally | `https://tally.so/r/<identifiant>` | Idem |
 
-**Tant que `ENDPOINT` est vide, rien n'est envoyé et la page le dit.** Elle affiche un
-avertissement explicite au lieu d'un « merci » mensonger. Une demande d'essai perdue sans que
-personne ne le sache est pire que pas de formulaire.
+**Tant que `ENDPOINT` est vide, rien n'est envoyé et la page le dit.** Une demande d'essai
+perdue sans que personne ne le sache est pire que pas de formulaire.
 
-Après l'avoir renseigné : **republier, envoyer une vraie demande de test, vérifier qu'elle
-arrive.**
+Deux messages, deux publics : le visiteur lit « les inscriptions ne sont pas encore
+ouvertes », phrase qui lui parle et qui ne l'accuse de rien ; la consigne technique part dans
+la console du navigateur, là où on la cherche. Sur un site en ligne, un message destiné au
+développeur s'afficherait à un professionnel qui vient de remplir sept champs.
+
+### Le chemin le plus court, quand le moment sera venu
+
+1. Créer un compte sur [formspree.io](https://formspree.io) (gratuit jusqu'à 50 demandes par
+   mois, une adresse email suffit).
+2. « New Form », copier l'adresse fournie — elle ressemble à `https://formspree.io/f/abcdxyz`.
+3. La coller entre les guillemets de `const ENDPOINT = '';`, en bas de `index.html`.
+4. `git push` : le redéploiement est automatique.
+5. **Envoyer une vraie demande de test et vérifier qu'elle arrive.** Une adresse mal collée
+   ne se voit pas autrement.
+
+Les champs partent tels quels : `prenom`, `metier`, `zone`, `email`, `telephone`,
+`instagram`, `tiktok`, `facebook`, `canal`, plus `source` qui vaut `landing-essai`.
 
 ### À valider aussi avant publication
 

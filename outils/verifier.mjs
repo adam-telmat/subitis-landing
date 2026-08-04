@@ -510,7 +510,7 @@ await page.waitForTimeout(1600);
 await remplir();
 await page.click('#form-pro button[type=submit]');
 const alerte = await page.locator('#alerte-pro').innerText();
-ok(/pas encore reli/i.test(alerte), 'formulaire non branché : il avertit');
+ok(/inscriptions ne sont pas encore ouvertes/i.test(alerte), 'formulaire non branché : il avertit');
 ok(!(await page.locator('#succes-pro').isVisible()), "aucun faux message de succès");
 
 if (EST_INDEX) {
@@ -534,7 +534,7 @@ if (EST_INDEX) {
   await page.click('#form-pro button[type=submit]');
   const sansOptionnels = await page.locator('#alerte-pro').innerText();
   ok(
-    /pas encore reli/i.test(sansOptionnels),
+    /inscriptions ne sont pas encore ouvertes/i.test(sansOptionnels),
     'téléphone et réseaux sont bien facultatifs : la validation passe sans eux',
   );
 }

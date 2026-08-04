@@ -3527,7 +3527,17 @@
           }
 
           if (!ENDPOINT) {
-            erreur('Le formulaire n’est pas encore relié au CRM. Renseignez ENDPOINT dans index.html, republiez, puis testez un envoi réel.');
+            // Deux publics, deux messages. Le visiteur lit une phrase qui lui
+            // parle : sa demande n'est pas partie, et il sait quoi faire. La
+            // consigne technique part dans la console, là où on la cherche —
+            // sur un site en ligne, « renseignez ENDPOINT dans index.html »
+            // s'affichait à un coiffeur qui venait de remplir sept champs.
+            erreur(
+              'Les inscriptions ne sont pas encore ouvertes : votre demande n’a pas pu être enregistrée. Réessayez dans quelques jours, rien n’a été perdu de votre côté.',
+            );
+            console.warn(
+              '[Subitis] ENDPOINT est vide : le formulaire n’envoie rien. Renseignez-le en haut du script, republiez, puis testez un envoi réel.',
+            );
             return;
           }
 
