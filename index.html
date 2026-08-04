@@ -258,7 +258,7 @@
         gap: 1.25rem;
         width: max-content;
         max-width: 100%;
-        background: rgba(251, 249, 246, 0.78);
+        background: rgba(251, 249, 246, 0.94);
         backdrop-filter: blur(18px);
         -webkit-backdrop-filter: blur(18px);
         border: 1px solid var(--line);
@@ -553,6 +553,25 @@
       .addition dd {
         color: var(--ink-900);
         font-weight: 600;
+      }
+
+      /* Deux constats secondaires, volontairement distincts des étapes
+         numérotées : même page, mais pas la même nature d'information. */
+      .constats {
+        margin-top: 2.75rem;
+        display: grid;
+        gap: 1.5rem;
+        padding-top: 1.75rem;
+        border-top: 1px solid var(--line);
+      }
+      .constats h3 {
+        font-size: 1.0625rem;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+      }
+      .constats p {
+        color: var(--ink-500);
+        font-size: 0.9375rem;
       }
 
       /* ----------------------------- Étapes ----------------------------- */
@@ -980,10 +999,11 @@
           height: 40px;
           font-size: 0.6875rem;
         }
-        .prix-grille {
+        .prix-grille,
+        .constats {
           grid-template-columns: 1fr 1fr;
           gap: 2.5rem;
-          align-items: center;
+          align-items: start;
         }
         .demande-tete {
           grid-template-columns: 1fr auto;
