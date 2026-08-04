@@ -3,28 +3,36 @@
 One pager de recrutement des professionnels de la beauté qui se déplacent, pilote Marseille.
 Livrable J2 de la Startup Week.
 
-**Un seul fichier : `index.html`.** Aucun framework, aucune dépendance, aucune étape de build.
-On l'ouvre, on le modifie, on le publie.
+**Un seul fichier : `index.html`, 187 Ko, entièrement autonome.** Aucun framework, aucune
+dépendance, aucune étape de build, aucune requête réseau. On l'ouvre, on le modifie, on le
+publie.
 
 ---
 
-## Les deux choses à faire avant de publier
+## Les deux valeurs à renseigner avant de publier
 
-Le fichier est complet, sauf deux valeurs que je ne peux pas inventer. Elles sont marquées
-dans le code et **la page refuse de mentir tant qu'elles manquent**.
+Le fichier est complet, sauf deux valeurs que je ne peux pas inventer. Elles sont marquées dans
+le code, et **la page refuse de mentir tant qu'elles manquent**.
 
 ### 1. L'identifiant Google Analytics 4
 
-Dans le `<head>`, remplacer les deux occurrences de `G-XXXXXXXXXX` par l'identifiant réel.
+Dans le `<head>`, remplacer `G-XXXXXXXXXX` par l'identifiant réel.
 
-Tant que la valeur commence par `G-X`, **aucun appel n'est émis vers Google** : le garde
-`startsWith('G-X')` coupe le chargement. Pas de fausse balise en production, pas de requête
-inutile.
+Tant que la valeur commence par `G-X`, un garde coupe le chargement : **aucun appel n'est émis
+vers Google**. Pas de fausse balise en production, rien à déclarer côté RGPD.
 
-Ensuite : **republier**. C'est l'oubli classique — une balise collée en local ne remonte pas
-dans GA4. Vérifier dans **GA4 → Rapports → Temps réel**, en navigation privée.
+Ensuite : **republier**. C'est l'oubli classique — une balise collée en local ne remonte pas.
+Vérifier dans **GA4 → Rapports → Temps réel**, en navigation privée.
 
-### 2. La destination du formulaire
+Trois événements sont déjà câblés :
+
+| Événement | Déclenché quand | Sert à |
+| --- | --- | --- |
+| `candidature_pro` | un professionnel envoie le formulaire | KPI n° 1 — inscriptions |
+| `interet_cliente` | ouverture du bloc « je cherche une prestation » | **KPI n° 3 — signal de demande** |
+| `demande_cliente` | le mini-formulaire de demande est envoyé | qualifie ce même signal |
+
+### 2. La destination des formulaires
 
 Dans le `<script>` en bas de page :
 
@@ -32,83 +40,116 @@ Dans le `<script>` en bas de page :
 const ENDPOINT = '';
 ```
 
-Trois options, par ordre de préférence :
-
 | Option | Adresse | Pourquoi |
 | --- | --- | --- |
 | **HubSpot** | `https://api.hsforms.com/submissions/v3/integration/submit/<portalId>/<formId>` | Le lien CRM est natif. La capture d'écran du J3 est acquise sans étape de plus |
-| Formspree | `https://formspree.io/f/<identifiant>` | Deux minutes à mettre en place, à relier à HubSpot par Make au J3 |
+| Formspree | `https://formspree.io/f/<identifiant>` | Deux minutes, à relier à HubSpot par Make au J3 |
 | Tally | `https://tally.so/r/<identifiant>` | Idem |
 
-**Tant que `ENDPOINT` est vide, le formulaire n'envoie rien et le dit.** Il affiche un
-avertissement explicite au lieu d'un « merci » mensonger. Un faux message de succès, c'est une
-candidature perdue sans que personne ne le sache — et la consigne du J2 liste précisément
-« ça marche sans preuve » comme une erreur.
+**Tant que `ENDPOINT` est vide, rien n'est envoyé et la page le dit.** Elle affiche un
+avertissement explicite au lieu d'un « merci » mensonger. Une candidature perdue sans que
+personne ne le sache est pire que pas de formulaire — et la consigne du J2 liste « ça marche
+sans preuve » parmi les erreurs sanctionnées.
 
-Après avoir renseigné l'adresse : **republier, envoyer une vraie candidature de test, et
-vérifier qu'elle arrive.**
+Après l'avoir renseigné : **republier, envoyer une vraie candidature de test, vérifier qu'elle
+arrive.**
 
 ---
 
 ## Publier
 
-### Vercel
-
 ```bash
-npx vercel --prod
+npx vercel --prod          # ou : Settings → Pages → Source main / racine sur GitHub
 ```
 
-Répondre aux questions, accepter les valeurs par défaut. L'URL rendue est celle qui part dans
-Tally.
-
-### GitHub Pages
-
-Pousser le dépôt, puis **Settings → Pages → Source : `main` / racine**. L'URL est disponible
-en une minute.
-
-Dans les deux cas : **tester le lien en navigation privée** avant de le déposer. Un lien qui ne
-marche que sur la machine qui l'a créé vaut zéro.
-
----
+**Tester le lien en navigation privée** avant de le déposer dans Tally. Un lien qui ne marche
+que sur la machine qui l'a créé vaut zéro.
 
 ## Le PDF du livrable
 
-`Ctrl+P` → **Orientation paysage** → Destination **Enregistrer au format PDF**.
+`Ctrl+P` → **paysage** → **Enregistrer au format PDF**. Environ 7 pages.
 
-Les règles d'impression sont déjà écrites : la barre de navigation disparaît, les blocs à
-révélation sont forcés visibles (`beforeprint`), les colonnes se resserrent, et les fonds
-sombres sont conservés via `print-color-adjust`.
+Cocher **« Graphismes d'arrière-plan »** : sans cela, les deux sections sur fond encre sortent
+en blanc.
 
-Si Chrome propose « Graphismes d'arrière-plan », **le cocher** : sans cela les deux sections
-sur fond encre sortent en blanc.
+Tout est déjà prévu : la barre de navigation et l'appel collant disparaissent, les blocs à
+révélation sont forcés visibles, le compteur du hero est figé à 540, les colonnes se resserrent.
+Un PDF prêt est aussi généré automatiquement dans `apercu/subitis-landing.pdf`.
+
+---
+
+## Vérifier
+
+```bash
+node outils/verifier.mjs
+```
+
+Ouvre un vrai Chromium et contrôle, en une passe :
+
+- **aucun défilement horizontal** de 320 à 1440 px (8 largeurs)
+- **cibles tactiles ≥ 44 px**, un seul `h1`, aucun saut de niveau, tout champ nommé
+- **contraste WCAG mesuré** sur une centaine de couples texte/fond, avec les ratios réels
+- **les 15 phrases imposées par le brief**, mot pour mot
+- aucune trace de l'ancien positionnement, aucun emoji, aucun mot creux
+- le **bloc de demande** s'ouvre, émet son événement GA4 et donne le focus au premier champ
+- les formulaires **avertissent** au lieu de simuler un envoi réussi
+- **aucune transition au-delà de 300 ms**, mouvement réduit respecté
+- **aucune requête vers l'extérieur** — les polices sont dans le fichier
+- impression : rien de vide, compteur figé, PDF généré
+- **navigation clavier** : chaque arrêt montre son contour de focus
+
+Il produit aussi `apercu/landing-{390,768,1280}.png`.
+
+## Regénérer les polices
+
+```bash
+node outils/embarquer-polices.mjs
+```
+
+Ce n'est **pas** une étape de build : `index.html` est livré complet. Ce script ne sert qu'à
+refaire l'opération si l'on change de police.
 
 ---
 
 ## Ce que contient la page
 
-Hero · le problème en trois blocs chiffrés · comment ça marche en trois étapes ·
-**ce qu'on ne fait pas** (le contre-positionnement, la section la plus importante) · le prix ·
-pourquoi nous faire confiance · le formulaire · le test côté demande · le pied de page.
+Hero · **l'inventaire périssable** (une semaine de créneaux dont trois s'éteignent, et
+l'addition qui aboutit à 540 €) · deux constats · comment ça marche en trois étapes ·
+**ce qu'on ne fait pas** avec le comparatif chiffré Wecasa · le prix · pourquoi nous faire
+confiance · le formulaire · le test côté demande · le pied de page.
 
-Le contenu vient mot pour mot de `hackathon/J2/BRIEF-LANDING-PAGE.md`. Il n'a pas été
-reformulé.
+Le contenu vient mot pour mot de `hackathon/J2/BRIEF-LANDING-PAGE.md`. Il n'a pas été reformulé.
 
-**Une seule page, aucune sous-page** — la consigne sanctionne les sites multi-pages.
-Le seul lien sortant est la source Wecasa, en `nofollow`.
+**Une seule page, aucune sous-page.** Le seul lien sortant est la source Wecasa, en `nofollow`.
 
-## Détails d'implémentation qui ont une raison
+## Les décisions qui ont une raison
 
-- **Le formulaire qualifie l'ICP** : la question « vous déplacez-vous chez la cliente ? » est
-  dans le formulaire, pas dans l'appel de rappel. Un « non » sort de la cible et on le sait
-  avant de décrocher.
-- **Anti-spam sans captcha** : un pot de miel invisible et un délai minimal de saisie de 1,5 s.
-  Un captcha ferait chuter la conversion sur le canal principal (message privé Instagram).
-- **Le clic sur le test côté demande émet un événement GA4 distinct** (`interet_cliente`).
-  C'est la première donnée mesurée sur l'appétence des clientes, et elle nourrit le dashboard
-  du J4.
-- **Aucun chiffre inventé.** 540 €, 6 500 €, 35 à 60 €, 29 €, 25 % Wecasa : tous viennent du
-  brief. Le taux Wecasa est sourcé et le lien est cliquable.
-- **Aucune traction affichée.** Pas de compteur d'inscrits, pas de témoignage, pas de logo.
-  L'équipe démarre à zéro.
-- Palette, typographie et double-liseré identiques au produit : le jury verra les deux à la
-  suite vendredi, ils doivent se reconnaître.
+**L'inventaire périssable est dessiné, pas décrit.** Trois créneaux sur vingt s'éteignent sous
+les yeux, et l'addition fait le calcul : `3 × 45 € × 4 semaines = 540 €`. C'est la thèse rendue
+visible, et personne d'autre ne l'aura.
+
+**Le contre-positionnement est démontré, pas affirmé.** Sur une prestation à 45 €, la commission
+Wecasa prélève 11,25 € — il reste 33,75 € au lieu de 45. Sur 12 prestations, elle prélève 135 €
+quand l'abonnement en coûte 29. **Dès la troisième prestation du mois, l'abonnement revient moins
+cher que la commission.** Tous ces chiffres dérivent du brief, aucun n'est inventé.
+
+**Le formulaire qualifie l'ICP.** La question « vous déplacez-vous chez la cliente ? » est dans
+le formulaire, pas dans l'appel de rappel. Un « non » sort de la cible avant qu'on décroche.
+
+**Anti-spam sans captcha** : un pot de miel invisible et un délai minimal de saisie de 1,5 s. Un
+captcha ferait chuter la conversion sur le canal principal, le message privé Instagram.
+
+**Aucune traction affichée.** Pas de compteur d'inscrits, pas de témoignage, pas de logo de
+presse. L'équipe démarre à zéro et la page ne prétend pas le contraire.
+
+**Palette, typographie et double-liseré identiques au produit.** Le jury verra la landing puis
+l'application : les deux doivent se reconnaître.
+
+## Limites connues
+
+- La page fait 9 écrans sur mobile. C'est long, mais chaque section répond à une objection
+  identifiée. À raccourcir seulement si la mesure montre un abandon avant le formulaire.
+- Aucune capture du produit n'est intégrée : l'application porte encore l'ancien nom. À ajouter
+  après son renommage — ce sera le meilleur argument de la page.
+- Les polices sont embarquées en latin de base uniquement. Un prénom en cyrillique ou en grec
+  retomberait sur la police système.
