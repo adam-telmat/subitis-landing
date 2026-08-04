@@ -865,7 +865,12 @@
         height: 18px;
         flex: none;
       }
-      .duo label:has(input:checked) {
+      /* `:has()` n'existe que depuis Safari 15.4. Le canal principal etant le
+         message prive ouvert sur telephone, on double la regle par une classe
+         posee en JavaScript : sur un iPhone plus ancien, la case choisie reste
+         visiblement choisie. */
+      .duo label:has(input:checked),
+      .duo label.choisie {
         background: var(--ink-900);
         border-color: var(--ink-900);
         color: var(--canvas);
@@ -1709,6 +1714,16 @@
           }
         });
       })();
+
+      /* Etat visuel des choix Oui / Non, sans dependre de `:has()`. */
+      document.querySelectorAll('.duo').forEach((groupe) => {
+        const majuscule = () =>
+          groupe.querySelectorAll('label').forEach((l) =>
+            l.classList.toggle('choisie', l.querySelector('input').checked),
+          );
+        groupe.addEventListener('change', majuscule);
+        majuscule();
+      });
 
       /* ------------------------ Envoi des formulaires ------------------------ */
       const ouvertureA = Date.now();
