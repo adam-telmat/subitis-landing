@@ -3,6 +3,10 @@
 .polices/
 node_modules/
 
+# Documents internes du hackathon : business model, personas, liste de
+# prospects. Ils ne doivent jamais partir sur GitHub ni chez l'hébergeur.
+plan-landing/
+
 # Le serveur local de relecture
 .serveur.mjs
 

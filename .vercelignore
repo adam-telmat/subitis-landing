@@ -1,0 +1,19 @@
+# Ce qui part en ligne : la landing, et rien d'autre.
+#
+# `index.html` est entièrement autonome — polices comprises, aucune requête
+# réseau — donc un seul fichier suffit à faire tourner le site. On part donc
+# du principe inverse de l'habitude : tout est exclu, et on ne réintègre que
+# ce qui doit être servi publiquement.
+#
+# Ce que cette règle protège, concrètement :
+#   plan-landing/  documents internes (business model, personas, prospects)
+#   apercu/        captures et PDF de relecture
+#   outils/        scripts de vérification et d'embarquement des polices
+#   marseille.html l'ancienne landing du pilote, qui porte un positionnement
+#                  différent : deux discours en ligne au même moment se
+#                  contredisent. Elle reste dans le dépôt, simplement pas
+#                  publiée. Pour la remettre en ligne : ajouter
+#                  `!marseille.html` sous la dernière ligne.
+
+*
+!index.html
