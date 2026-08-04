@@ -160,7 +160,7 @@ const contrastes = await page.evaluate(() => {
     return `rgb(${r}, ${g}, ${b})`;
   };
   const out = [];
-  for (const el of document.querySelectorAll('p, h1, h2, h3, a, span, dt, dd, td, th, label, button, small')) {
+  for (const el of document.querySelectorAll('p, h1, h2, h3, a, span, strong, b, em, li, dt, dd, td, th, label, button, small')) {
     const t = el.textContent?.trim();
     if (!t || t.length < 2 || el.children.length > 0) continue;
     const s = getComputedStyle(el);

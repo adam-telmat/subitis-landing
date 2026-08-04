@@ -121,6 +121,9 @@
         scroll-behavior: smooth;
       }
       body {
+        /* De la place sous le dernier contenu : la barre collante est en
+           position fixe et masquerait sinon la fin du pied de page. */
+        padding-bottom: 5.5rem;
         background: var(--canvas);
         color: var(--ink-700);
         font-family: var(--sans);
@@ -593,7 +596,10 @@
       }
       .negatif .titre,
       .negatif h3,
-      .negatif th {
+      .negatif th,
+      .negatif strong,
+      .ardoise strong,
+      .collant strong {
         color: var(--canvas);
       }
       .negatif .sous-titre {
@@ -642,6 +648,12 @@
       .comparatif td:first-child {
         text-align: left;
         color: rgba(251, 249, 246, 0.68);
+      }
+      /* Un montant ne se coupe pas : le signe moins seul sur sa ligne se lit
+         comme un tiret et casse la lecture du tableau. */
+      .comparatif td:not(:first-child),
+      .comparatif th:not(:first-child) {
+        white-space: nowrap;
       }
       .comparatif thead th {
         font-size: 0.6875rem;
@@ -983,6 +995,9 @@
         .collant {
           display: none;
         }
+        body {
+          padding-bottom: 0;
+        }
         .pilule .bouton {
           display: inline-flex;
         }
@@ -1035,9 +1050,6 @@
         }
         .grain {
           display: none;
-        }
-        .collant {
-          transform: none;
         }
       }
 
@@ -1297,7 +1309,7 @@
               <tbody>
                 <tr><td>Prix de la prestation</td><td class="nb">45,00&nbsp;€</td><td class="nb">45,00&nbsp;€</td></tr>
                 <tr><td>Qui fixe ce prix</td><td class="eux">Eux</td><td class="nous">Vous</td></tr>
-                <tr><td>Commission prélevée</td><td class="eux nb">− 11,25&nbsp;€</td><td class="nous nb">− 0,00&nbsp;€</td></tr>
+                <tr><td>Commission prélevée</td><td class="eux nb">−&nbsp;11,25&nbsp;€</td><td class="nous nb">−&nbsp;0,00&nbsp;€</td></tr>
               </tbody>
               <tfoot>
                 <tr><td>Il vous reste</td><td class="eux nb">33,75&nbsp;€</td><td class="nous nb">45,00&nbsp;€</td></tr>
@@ -1604,16 +1616,27 @@
         if (!collant || !('IntersectionObserver' in window)) return;
         // Il apparaît une fois le hero dépassé, et se retire quand le
         // formulaire est à l’écran : deux appels côte à côte se nuisent.
-        const sentinelle = document.querySelector('.hero');
-        new IntersectionObserver(
-          ([e]) => collant.classList.toggle('visible', !e.isIntersecting),
-          { threshold: 0 },
-        ).observe(sentinelle);
+        let heroPasse = false;
+        let formulaireAtteint = false;
+        const majuscule = () =>
+          collant.classList.toggle('visible', heroPasse && !formulaireAtteint);
+
         new IntersectionObserver(
           ([e]) => {
-            if (e.isIntersecting) collant.classList.remove('visible');
+            heroPasse = !e.isIntersecting;
+            majuscule();
           },
-          { threshold: 0.15 },
+          { threshold: 0 },
+        ).observe(document.querySelector('.hero'));
+
+        // `boundingClientRect.top < 0` couvre le cas ou l'on a DEPASSE le
+        // formulaire : sans lui, la barre revenait recouvrir le pied de page.
+        new IntersectionObserver(
+          ([e]) => {
+            formulaireAtteint = e.isIntersecting || e.boundingClientRect.top < 0;
+            majuscule();
+          },
+          { threshold: 0.1 },
         ).observe(candidature);
       })();
 
