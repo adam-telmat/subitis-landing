@@ -251,6 +251,13 @@
         padding: 0.85rem 1.25rem;
         display: flex;
         justify-content: center;
+        transition: transform var(--normal) var(--ease);
+      }
+      /* Retirée pendant la descente : une pilule opaque posée sur le texte que
+         l'on est en train de lire gêne plus qu'elle ne sert. Elle revient au
+         premier geste vers le haut. */
+      .barre.repliee {
+        transform: translate3d(0, -140%, 0);
       }
       .pilule {
         display: flex;
@@ -1638,6 +1645,30 @@
       } else {
         aReveler.forEach((el) => el.classList.add('vu'));
       }
+
+      /* ------- La barre se retire a la descente, revient a la remontee ------- */
+      (() => {
+        const barre = document.querySelector('.barre');
+        let dernier = window.scrollY;
+        let enAttente = false;
+        addEventListener(
+          'scroll',
+          () => {
+            if (enAttente) return;
+            enAttente = true;
+            // Une seule mesure par frame : lire scrollY a chaque evenement
+            // force un recalcul de mise en page et saccade sur mobile.
+            requestAnimationFrame(() => {
+              const y = window.scrollY;
+              const descend = y > dernier && y > 160;
+              barre.classList.toggle('repliee', descend);
+              dernier = y;
+              enAttente = false;
+            });
+          },
+          { passive: true },
+        );
+      })();
 
       /* ---------------- Appel collant sur mobile ---------------- */
       (() => {
