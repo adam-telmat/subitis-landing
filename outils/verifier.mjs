@@ -329,25 +329,68 @@ if (EST_INDEX) {
   ok(mockups.interactifs === 0, `aucun élément interactif ni titre dans les écrans factices (${mockups.interactifs})`);
   ok(mockups.sansRole === 0, `chaque écran porte role="img" et une description (${mockups.sansRole} sans)`);
 
-  /* La séquence épinglée : l'étape qui traverse le milieu du viewport pilote
-     l'écran affiché. On la parcourt dans le désordre pour vérifier que la
-     bascule marche dans les deux sens, pas seulement vers le bas. */
+  /* La séquence épinglée. On la parcourt à la molette, pas en centrant les
+     étapes : la bande de détection n'est pas au même endroit sur mobile et
+     sur grand écran, et un centrage artificiel testerait une géométrie que
+     personne ne produit en défilant. On vérifie en descendant puis en
+     remontant — une bascule qui ne marche que vers le bas est à moitié
+     cassée. Et à chaque bascule, le texte actif doit être RÉELLEMENT lisible :
+     sous l'appareil épinglé, pas derrière lui. */
   console.log('\n— Séquence épinglée');
-  for (const i of [1, 2, 0]) {
-    await page.evaluate((n) => {
-      document
-        .querySelector(`.sequence-etape[data-etape="${n}"]`)
-        .scrollIntoView({ block: 'center', behavior: 'instant' });
-    }, i);
-    await page.waitForTimeout(450);
-    const etat = await page.evaluate(() => ({
-      vue: document.querySelector('.telephone.multi .app.active')?.dataset.vue,
-      actives: document.querySelectorAll('.telephone.multi .app.active').length,
-      etape: document.querySelector('.sequence-etape.active')?.dataset.etape,
-    }));
-    ok(etat.vue === String(i) && etat.actives === 1, `étape ${i} au centre : un seul écran affiché, le n° ${i} (lu : ${etat.vue})`);
-    ok(etat.etape === String(i), `le texte de l'étape ${i} est mis en avant (lu : ${etat.etape})`);
-  }
+  const lire = () =>
+    page.evaluate(() => {
+      const actif = document.querySelector('.sequence-etape.active');
+      const titre = actif?.querySelector('h3').getBoundingClientRect();
+      const appareil = document.querySelector('.sequence-scene').getBoundingClientRect();
+      return {
+        vue: document.querySelector('.telephone.multi .app.active')?.dataset.vue,
+        actives: document.querySelectorAll('.telephone.multi .app.active').length,
+        etape: actif?.dataset.etape,
+        // Sur grand écran l'appareil est à côté du texte : aucun recouvrement
+        // possible, le contrôle ne vaut que dans la disposition empilée.
+        empile: appareil.left < titre?.left + titre?.width && appareil.bottom < window.innerHeight,
+        titreVisible: titre ? titre.top >= appareil.bottom - 4 && titre.bottom <= window.innerHeight : false,
+      };
+    });
+
+  const parcourir = async (sens) => {
+    const vues = [];
+    let precedent = null;
+    for (let pas = 0; pas < 90; pas += 1) {
+      await page.mouse.wheel(0, 130 * sens);
+      await page.waitForTimeout(70);
+      const etat = await lire();
+      if (etat.vue !== precedent) {
+        precedent = etat.vue;
+        await page.waitForTimeout(600);
+        vues.push(await lire());
+      }
+      if (vues.length >= 3) break;
+    }
+    return vues;
+  };
+
+  await page.evaluate(() => document.querySelector('#reponses').scrollIntoView({ block: 'start', behavior: 'instant' }));
+  await page.waitForTimeout(300);
+  const descente = await parcourir(1);
+  ok(
+    descente.map((v) => v.vue).join('') === '012',
+    `en descendant, les écrans se succèdent dans l'ordre (lu : ${descente.map((v) => v.vue).join('')})`,
+  );
+  ok(
+    descente.every((v) => v.actives === 1 && v.vue === v.etape),
+    'un seul écran actif à la fois, toujours celui du texte mis en avant',
+  );
+  const cachés = descente.filter((v) => v.empile && !v.titreVisible).map((v) => v.etape);
+  ok(cachés.length === 0, `à chaque bascule, le titre actif est sous l'appareil et non derrière ${JSON.stringify(cachés)}`);
+
+  const remontee = (await parcourir(-1)).map((v) => Number(v.vue));
+  ok(
+    remontee.length >= 2 &&
+      remontee.at(-1) === 0 &&
+      remontee.every((v, i) => i === 0 || v < remontee[i - 1]),
+    `en remontant, les écrans redescendent jusqu'au premier (lu : ${remontee.join(' → ')})`,
+  );
 } else {
   console.log('\n— Bloc de demande (KPI n°3)');
   ok(await page.locator('#boite-demande').isHidden(), 'le mini-formulaire est replié au départ');

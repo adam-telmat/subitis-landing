@@ -153,11 +153,30 @@ Toutes ses mesures dérivent d'une seule variable `--l`. Aucune capture d'écran
 l'application porte encore l'ancien nom.
 
 **Un appareil, trois écrans, épinglé au défilement.** La section « trois moments » garde
-l'appareil à l'écran pendant que les réponses défilent, et change son écran à chaque étape.
-La détection est une ligne au milieu du viewport (`rootMargin: -50% 0 -50%`) ; on n'éteint
-jamais sur la sortie, sinon plus aucune étape ne serait active en haut et en bas de la section.
-Le sortant s'efface en 220 ms et l'entrant arrive 170 ms plus tard : un fondu croisé symétrique
-superposerait deux mises en page et rendrait l'écran illisible une demi-seconde.
+l'appareil à l'écran pendant que les réponses défilent, et change son écran à chaque étape. On
+n'éteint jamais sur la sortie, sinon plus aucune étape ne serait active en haut et en bas de la
+section. Le sortant s'efface en 220 ms et l'entrant arrive 170 ms plus tard : un fondu croisé
+symétrique superposerait deux mises en page et rendrait l'écran illisible une demi-seconde.
+
+**La ligne de détection n'est pas au même endroit sur mobile et sur grand écran**, et les trois
+réglages qui en dépendent tiennent ensemble :
+
+| | Grand écran (≥ 1000 px) | Mobile |
+| --- | --- | --- |
+| Disposition | texte à gauche, appareil à droite | appareil épinglé en haut, texte dessous |
+| Ligne de détection | milieu du viewport (`-50% / -50%`) | plus bas (`-74% / -18%`) |
+| Texte dans sa boîte | centré | en haut — le déclencheur observe le haut de la boîte |
+| Hauteur d'étape | 58 vh | 26 vh, la course pendant laquelle le texte reste sous l'appareil |
+
+Sur mobile la barre d'onglets de l'interface dessinée s'efface : sous 200 px de large, quatre
+libellés se chevauchent et cette hauteur sert mieux au contenu. Le vérificateur parcourt la
+séquence **à la molette**, dans les deux sens, et contrôle qu'à chaque bascule le titre actif
+est bien *sous* l'appareil et non derrière — un centrage artificiel testerait une géométrie que
+personne ne produit en défilant.
+
+**Les trois promesses du hero sont dimensionnées comme des titres.** `0 %`, `24 h/24`, `1` :
+ce sont les seuls chiffres à retenir si le visiteur ne lit rien d'autre. En petit corps sur une
+ligne, ils se lisaient comme des notes de bas de page.
 
 **Deux familles de mouvement, et c'est délibéré.** Les commandes répondent sous 300 ms — une
 commande lente est une commande cassée. Les entrées au défilement prennent 760 ms avec une

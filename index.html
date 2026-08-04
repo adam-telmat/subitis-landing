@@ -221,13 +221,15 @@
       .titre {
         font-family: var(--display);
         font-weight: 400;
-        font-size: clamp(1.8rem, 5vw, 2.6rem);
-        max-width: 24ch;
+        font-size: clamp(2rem, 5.6vw, 3.15rem);
+        letter-spacing: -0.025em;
+        max-width: 22ch;
       }
       .sous-titre {
-        margin-top: 0.9rem;
+        margin-top: 1rem;
+        font-size: 1.0625rem;
         color: var(--ink-500);
-        max-width: 54ch;
+        max-width: 52ch;
       }
 
       .coque {
@@ -395,22 +397,33 @@
         font-size: 0.875rem;
         color: var(--ink-500);
       }
+      /* Les trois promesses ne sont pas des notes de bas de page : ce sont
+         les seuls chiffres que le visiteur doit retenir s'il ne lit rien
+         d'autre. Ils sont donc dimensionnés comme des titres. */
       .garanties {
-        margin-top: 2rem;
+        margin-top: 2.25rem;
+        padding-top: 1.6rem;
         border-top: 1px solid var(--line);
+        display: grid;
+        gap: 1.4rem;
       }
       .garanties div {
-        border-bottom: 1px solid var(--line);
-        padding-block: 0.8rem;
-        font-size: 0.9375rem;
-        display: flex;
-        gap: 0.65rem;
-        align-items: baseline;
+        display: grid;
+        gap: 0.2rem;
+        align-content: start;
       }
       .garanties b {
-        color: var(--sage-700);
-        font-weight: 600;
-        flex: none;
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: clamp(2.2rem, 7vw, 2.9rem);
+        line-height: 1;
+        letter-spacing: -0.035em;
+        color: var(--ink-900);
+      }
+      .garanties span {
+        font-size: 0.9375rem;
+        color: var(--ink-500);
+        max-width: 28ch;
       }
       .defs-art {
         position: absolute;
@@ -548,8 +561,10 @@
 
       /* Le hero pose l'appareil en perspective, légèrement de trois quarts. */
       .hero .telephone {
-        --l: clamp(258px, 74vw, 316px);
-        transform: rotateY(-14deg) rotateX(3deg) rotateZ(0.6deg);
+        /* Sur mobile, l'appareil descend et la rotation s'atténue : de trois
+           quarts sur 290 px de large, l'interface devient difficile à lire. */
+        --l: clamp(236px, 66vw, 316px);
+        transform: rotateY(-8deg) rotateX(2deg);
         transition: transform var(--entree) var(--ease-doux);
       }
       @media (hover: hover) and (prefers-reduced-motion: no-preference) {
@@ -903,6 +918,11 @@
         justify-items: center;
         gap: 2px;
         font-size: 8px;
+        /* Quatre libellés dans 200 px : sans troncature ils se chevauchent. */
+        max-width: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
       }
       .app-onglets span.on {
         color: var(--rose-700);
@@ -1001,20 +1021,43 @@
         display: grid;
         gap: 1.5rem;
       }
+      /* Sur mobile, l'appareil s'épingle en haut et le texte défile dessous.
+         Il doit rester petit : à plus de 45 % de la hauteur d'écran, il ne
+         reste plus de place pour lire la réponse qu'il illustre. */
       .sequence-scene {
         position: sticky;
         top: 0;
         z-index: 3;
         display: grid;
         place-items: center;
+        /* Fond plein jusqu'en bas de l'appareil, fondu seulement sous lui :
+           un dégradé qui démarre trop haut laisse le texte transparaître au
+           travers de l'écran, et l'illusion tombe. */
         padding-block: 1rem 1.25rem;
-        background: linear-gradient(var(--canvas) 78%, rgba(251, 249, 246, 0));
+        background: linear-gradient(var(--canvas) 95%, rgba(251, 249, 246, 0));
       }
+      /* En dessous de 200 px de large, l'interface n'est plus lisible : le
+         texte des cartes déborde et les onglets se chevauchent. L'appareil
+         garde donc une taille plancher, et la barre d'onglets — décorative —
+         s'efface pour rendre cette hauteur au contenu utile. */
       .sequence-scene .telephone {
-        --l: clamp(186px, 46vw, 214px);
+        --l: clamp(164px, 43vw, 184px);
+      }
+      .sequence-scene .app-onglets {
+        display: none;
       }
       .sequence-etape {
-        padding-block: 1.75rem;
+        /* Géométrie mobile, calée sur celle de l'appareil épinglé (il occupe
+           les ~435 px du haut). Le texte est en HAUT de sa boîte parce que le
+           déclencheur observe le haut de cette boîte : s'il était en bas,
+           l'écran changerait une pleine hauteur de boîte trop tôt. La hauteur
+           minimale vaut la course pendant laquelle le texte reste sous
+           l'appareil — au-delà, il passerait derrière avant le basculement. */
+        min-height: 26vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding-block: 0.5rem 1.5rem;
         border-top: 1px solid var(--line);
         opacity: 0.45;
         transition: opacity var(--entree) var(--ease-doux);
@@ -1031,15 +1074,15 @@
       .sequence-etape h3 {
         font-family: var(--display);
         font-weight: 400;
-        font-size: clamp(1.35rem, 3.6vw, 1.75rem);
-        letter-spacing: -0.015em;
+        font-size: clamp(1.65rem, 5vw, 2.4rem);
+        letter-spacing: -0.025em;
         margin-top: 0.5rem;
       }
       .sequence-etape p {
-        margin-top: 0.7rem;
+        margin-top: 0.8rem;
         color: var(--ink-500);
-        font-size: 0.9375rem;
-        max-width: 42ch;
+        font-size: 1.0625rem;
+        max-width: 40ch;
       }
 
       /* ============================ LE CALCULATEUR ============================
@@ -1180,14 +1223,14 @@
       .etape h3,
       .refus h3,
       .confiance strong {
-        font-size: 1.0625rem;
+        font-size: 1.1875rem;
         font-weight: 600;
-        margin-bottom: 0.3rem;
+        margin-bottom: 0.35rem;
       }
       .etape p,
       .refus p {
         color: var(--ink-500);
-        font-size: 0.9375rem;
+        font-size: 1rem;
       }
 
       /* ------------------- Le modèle (fond encre) ------------------- */
@@ -1245,14 +1288,14 @@
       }
       .marche-chiffre {
         font-family: var(--display);
-        font-size: 1.9rem;
+        font-size: clamp(2.3rem, 6.4vw, 3rem);
         font-weight: 300;
-        letter-spacing: -0.02em;
-        line-height: 1.1;
+        letter-spacing: -0.03em;
+        line-height: 1;
         color: var(--canvas);
       }
       .marche-libelle {
-        font-size: 0.8125rem;
+        font-size: 0.875rem;
         color: rgba(251, 249, 246, 0.68);
         max-width: 30ch;
       }
@@ -1391,17 +1434,17 @@
         color: var(--ink-500);
       }
       .offre .prix-chiffre {
-        font-size: 2.1rem;
+        font-size: 2.7rem;
         margin-top: 0.6rem;
       }
       .offre p {
-        margin-top: 0.7rem;
+        margin-top: 0.75rem;
         color: var(--ink-500);
-        font-size: 0.9375rem;
+        font-size: 1rem;
       }
       .prix-mot {
         font-family: var(--display);
-        font-size: 1.7rem;
+        font-size: 2.2rem;
         font-weight: 300;
         color: var(--ink-900);
         margin-top: 0.6rem;
@@ -1416,7 +1459,7 @@
         grid-template-columns: 18px 1fr;
         gap: 0.6rem;
         align-items: start;
-        font-size: 0.9375rem;
+        font-size: 1rem;
         color: var(--ink-700);
       }
       .offre-liste svg {
@@ -1427,7 +1470,7 @@
       .offre-ancre {
         border-left: 2px solid var(--rose-600);
         padding-left: 1rem;
-        font-size: 0.9375rem;
+        font-size: 1rem;
         color: var(--ink-700);
       }
       .offre-principale .bouton {
@@ -1458,7 +1501,7 @@
         margin-top: 0.3rem;
       }
       .confiance p {
-        font-size: 0.9375rem;
+        font-size: 1rem;
         color: var(--ink-500);
       }
 
@@ -1704,6 +1747,10 @@
           grid-template-columns: repeat(3, 1fr);
           gap: 2rem;
         }
+        .garanties {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1.75rem;
+        }
         .pied {
           grid-template-columns: 1fr auto;
           align-items: end;
@@ -1727,6 +1774,9 @@
           grid-template-columns: 1.05fr 0.95fr;
           gap: 3.5rem;
           align-items: center;
+        }
+        .hero .telephone {
+          transform: rotateY(-14deg) rotateX(3deg) rotateZ(0.6deg);
         }
         .form-grille {
           display: grid;
@@ -1757,8 +1807,8 @@
         /* La séquence prend sa forme définitive : texte à gauche, appareil
            épinglé à droite, à hauteur de regard. */
         .sequence {
-          grid-template-columns: 1fr 0.85fr;
-          gap: 4rem;
+          grid-template-columns: 1fr 344px;
+          gap: 3rem;
           align-items: start;
         }
         .sequence-scene {
@@ -1770,13 +1820,19 @@
           background: none;
         }
         .sequence-scene .telephone {
-          --l: 292px;
+          --l: 300px;
+        }
+        .sequence-scene .app-onglets {
+          display: grid;
         }
         .sequence-etape {
           grid-column: 1;
-          min-height: 72vh;
-          display: flex;
-          flex-direction: column;
+          /* Le texte est poussé contre l'appareil : au milieu d'une colonne
+             large, les deux se regardent d'un bout à l'autre de l'écran et le
+             lien entre la phrase et l'écran qu'elle décrit se perd. */
+          justify-self: end;
+          max-width: 31rem;
+          min-height: 58vh;
           justify-content: center;
           border-top: 0;
           padding-block: 0;
@@ -1788,7 +1844,7 @@
            épinglée se termine pile quand cette étape arrive au centre, et
            l'appareil décroche vers le haut au moment précis où on le regarde. */
         .sequence-etape:last-of-type {
-          padding-bottom: 14vh;
+          padding-bottom: 10vh;
         }
       }
 
@@ -1886,6 +1942,11 @@
           grid-template-columns: 1fr 210px !important;
           gap: 1.5rem !important;
         }
+        .garanties {
+          grid-template-columns: repeat(3, 1fr) !important;
+          gap: 1.25rem !important;
+          break-inside: avoid;
+        }
         .sequence-scene {
           position: static !important;
           height: auto !important;
@@ -1897,9 +1958,14 @@
         .sequence-etape {
           grid-column: 1 !important;
           min-height: 0 !important;
+          max-width: none !important;
+          justify-self: stretch !important;
           padding-block: 0.7rem !important;
           border-top: 1px solid var(--line) !important;
           break-inside: avoid;
+        }
+        .sequence-etape h3 {
+          font-size: 1.3rem !important;
         }
         .offres-grille {
           grid-template-columns: 1fr 1fr !important;
@@ -2087,9 +2153,9 @@
             </div>
 
             <div class="garanties">
-              <div><b>Zéro</b> commission, quel que soit votre volume.</div>
-              <div><b>Vos</b> prix, sans promo forcée, sans tarif imposé.</div>
-              <div><b>Une</b> prestation par mois rembourse l'abonnement.</div>
+              <div><b class="nb">0&nbsp;%</b><span>de commission. Vos prix restent vos prix.</span></div>
+              <div><b class="nb">24&nbsp;h/24</b><span>vos clients réservent sans vous appeler.</span></div>
+              <div><b class="nb">1</b><span>prestation par mois rembourse l'abonnement.</span></div>
             </div>
           </div>
 
@@ -2304,7 +2370,7 @@
                           </div>
                           <div class="app-carte">
                             <span class="app-pastille">R</span>
-                            <span class="app-detail"><b class="nb">Créneau repris · 60 €</b><span class="nb">Demain 14:00 — confirmé</span></span>
+                            <span class="app-detail"><b>Créneau repris</b><span class="nb">Demain 14:00 · 60 €</span></span>
                             <span class="app-etat neuf">Neuf</span>
                           </div>
                         </div>
@@ -2934,13 +3000,19 @@
         };
 
         if (!('IntersectionObserver' in window)) return;
+        // Sur grand écran, l'appareil est à côté du texte : la ligne de
+        // détection peut rester au milieu. Sur mobile il est épinglé en haut
+        // et occupe la moitié de l'écran — la ligne descend donc dans la zone
+        // où le texte est réellement lisible, sinon l'écran changerait alors
+        // que la phrase qu'il illustre est encore cachée derrière l'appareil.
+        const cote = window.matchMedia('(min-width: 1000px)').matches;
         const observateur = new IntersectionObserver(
           (entrees) => {
             entrees.forEach((e) => {
               if (e.isIntersecting) activer(Number(e.target.dataset.etape));
             });
           },
-          { rootMargin: '-50% 0px -50% 0px' },
+          { rootMargin: cote ? '-50% 0px -50% 0px' : '-74% 0px -18% 0px' },
         );
         etapes.forEach((e) => observateur.observe(e));
       })();
