@@ -692,10 +692,66 @@
         font-size: 0.9375rem;
       }
 
+      /* Bande pleine largeur : la respiration visuelle de la page. Une seule,
+         volontairement — la consigne sanctionne les pages trop chargées. */
+      .bande-image {
+        position: relative;
+        padding: 0;
+        min-height: 300px;
+        display: grid;
+        isolation: isolate;
+        background: var(--ink-900);
+      }
+      .bande-image img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+        filter: saturate(0.7) contrast(1.04) brightness(0.72);
+      }
+      .bande-texte {
+        position: relative;
+        z-index: 1;
+        align-self: center;
+        padding-block: 3.5rem;
+      }
+      .bande-texte p {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: clamp(1.5rem, 4.2vw, 2.6rem);
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        color: var(--canvas);
+        max-width: 22ch;
+        text-shadow: 0 1px 24px rgba(23, 17, 15, 0.55);
+      }
+
       /* ------------------- Contre-positionnement (fond encre) ------------------- */
       .negatif {
+        position: relative;
         background: var(--ink-900);
         color: var(--canvas);
+        isolation: isolate;
+        overflow: hidden;
+      }
+      /* La photographie reste une ambiance : très sombre, très désaturée.
+         Elle donne de la profondeur sans jamais disputer la lecture du
+         tableau chiffré, qui est le cœur de cette section. */
+      .fond-negatif {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: -1;
+        opacity: 0.28;
+        filter: saturate(0.55) brightness(0.55);
+      }
+      .negatif > .contenant {
+        position: relative;
+        z-index: 1;
       }
       .negatif .titre,
       .negatif h3,
@@ -1272,6 +1328,8 @@
         .scene-fond,
         .scene,
         .negatif,
+        .fond-negatif,
+        .bande-image,
         .creneau {
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
@@ -1553,8 +1611,35 @@
         </div>
       </section>
 
+      <!-- =========================== BANDE PLEINE LARGEUR =========================== -->
+      <section class="bande-image">
+        <img
+          src="photos/maquillage.jpg"
+          width="2000"
+          height="1333"
+          alt="Une maquilleuse applique du rouge à lèvres à une cliente, dans une lumière douce."
+          loading="lazy"
+          decoding="async"
+        />
+        <div class="bande-texte">
+          <p class="contenant">
+            Le créneau de 14&nbsp;h que vous n’avez pas vendu, quelqu’un le cherchait
+            dans votre quartier.
+          </p>
+        </div>
+      </section>
+
       <!-- ======================= CE QU'ON NE FAIT PAS ======================= -->
       <section class="negatif">
+        <img
+          class="fond-negatif"
+          src="photos/atmosphere.jpg"
+          width="2400"
+          height="1600"
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
         <div class="contenant">
           <span class="eyebrow">Ce qu’on ne fait pas</span>
           <h2 class="titre">Wecasa prend 25&nbsp;% et fixe vos prix. Nous, rien de tout ça.</h2>
