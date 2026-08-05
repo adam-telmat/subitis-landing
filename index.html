@@ -1736,6 +1736,16 @@
         letter-spacing: 0.04em;
         color: var(--ink-500);
       }
+      /* Deux champs courts sur une ligne : prénom et nom se lisent comme une
+         seule question, et le formulaire ne s'allonge pas. */
+      .paire {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.6rem;
+      }
+      .paire > * {
+        min-width: 0;
+      }
       /* Les trois réseaux tiennent sur une ligne même à 320 px : empilés, ils
          ajoutaient trois écrans de défilement à un formulaire déjà long, et
          un formulaire long se remplit moins. */
@@ -3100,9 +3110,18 @@
               <div id="alerte-pro" class="alerte" role="alert"></div>
 
               <form id="form-pro" novalidate>
-                <div class="champ">
-                  <label for="prenom">Prénom</label>
-                  <input id="prenom" name="prenom" type="text" autocomplete="given-name" required />
+                <!-- Prénom ET nom : un CRM qui ne reçoit qu'un prénom ne peut
+                     ni dédoublonner, ni s'adresser correctement à la personne,
+                     et laisse vide le champ que HubSpot attend. -->
+                <div class="paire">
+                  <div class="champ">
+                    <label for="prenom">Prénom</label>
+                    <input id="prenom" name="prenom" type="text" autocomplete="given-name" required />
+                  </div>
+                  <div class="champ">
+                    <label for="nom">Nom</label>
+                    <input id="nom" name="nom" type="text" autocomplete="family-name" required />
+                  </div>
                 </div>
 
                 <div class="champ">
@@ -3632,6 +3651,7 @@
              réponse inventée. */
           const charge = {
             prenom: donnees.prenom,
+            nom: donnees.nom,
             metier: donnees.metier,
             zone: donnees.zone,
             email: donnees.email,
@@ -3673,7 +3693,7 @@
         form: 'form-pro',
         alerte: 'alerte-pro',
         succes: 'succes-pro',
-        obligatoires: ['prenom', 'metier', 'zone', 'email', 'canal'],
+        obligatoires: ['prenom', 'nom', 'metier', 'zone', 'email', 'canal'],
         nomEvenement: 'inscription_pro',
         source: 'landing',
       });

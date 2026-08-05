@@ -122,7 +122,8 @@ La charge envoyée, aux noms de clés attendus par l'automatisation :
 
 ```json
 {
-  "prenom": "Karim",       "metier": "Barbier",
+  "prenom": "Karim",       "nom": "Benali",
+  "metier": "Barbier",
   "zone": "Marseille 3e",  "email": "karim@exemple.fr",
   "telephone": "0612345678",
   "instagram": "@karim.barber", "tiktok": "", "facebook": "",
@@ -131,6 +132,10 @@ La charge envoyée, aux noms de clés attendus par l'automatisation :
   "horodatage": "2026-08-05T09:41:12.000Z"
 }
 ```
+
+Côté Make, `prenom` et `nom` se mappent sur les champs HubSpot **`firstname`** et
+**`lastname`**. Sans le nom, la fiche contact reste incomplète, le dédoublonnage devient
+approximatif et les relances s'adressent à un prénom seul.
 
 > [!WARNING]
 > **`se_deplace` a été retiré du formulaire, à la demande du fondateur.** Le brief J3 en

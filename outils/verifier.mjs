@@ -511,6 +511,7 @@ if (EST_INDEX) {
 console.log('\n— Honnêteté des formulaires');
 const remplir = async () => {
   await page.fill('#prenom', 'Test');
+  if (EST_INDEX) await page.fill('#nom', 'Recette');
   await page.selectOption('#metier', { index: 1 });
   await page.fill('#zone', EST_INDEX ? 'Lyon 3e' : '13006');
   if (EST_INDEX) {
@@ -554,7 +555,10 @@ if (EST_INDEX) {
      traduirait par des inscriptions perdues sans que personne ne l'apprenne. */
   const enAttente = await page.evaluate(() => JSON.parse(localStorage.getItem('subitis.inscriptions.en-attente') || '[]'));
   ok(enAttente.length === 1, `l'inscription en échec est gardée sur l'appareil (${enAttente.length})`);
-  ok(enAttente[0]?.email === 'test@exemple.fr', `avec ses données intactes (${enAttente[0]?.email})`);
+  ok(
+    enAttente[0]?.email === 'test@exemple.fr' && enAttente[0]?.prenom && enAttente[0]?.nom,
+    `avec ses données intactes (${enAttente[0]?.prenom} ${enAttente[0]?.nom}, ${enAttente[0]?.email})`,
+  );
 
   collecterConsole = true;
   let rejoue = 0;
@@ -648,9 +652,12 @@ await page.reload({ waitUntil: 'load' });
 await page.waitForTimeout(1600);
 await page.fill('#prenom', 'Test');
 await page.click('#form-pro button[type=submit]');
+/* Le premier champ requis laissé vide, dans l'ordre du formulaire : le nom
+   sur la page généraliste, le métier sur celle du pilote. */
+const premierManquant = EST_INDEX ? '#nom' : '#metier';
 ok(
-  await page.locator('#metier').evaluate((e) => e === document.activeElement),
-  'champ manquant : le focus va sur le champ fautif',
+  await page.locator(premierManquant).evaluate((e) => e === document.activeElement),
+  `champ manquant : le focus va sur le champ fautif (${premierManquant})`,
 );
 
 /* -------------------------------------------------------------------------- */
