@@ -635,8 +635,20 @@ const pageReseau = await ctxReseau.newPage();
 await pageReseau.goto(URL_BASE, { waitUntil: 'networkidle' });
 ok(sorties.length === 0, `aucune requête hors mesure d'audience ${JSON.stringify(sorties.slice(0, 3))}`);
 if (EST_INDEX) {
-  const idGA4 = await pageReseau.evaluate(() => window.SUBITIS_GA4);
+  /* La balise doit être lisible dans le HTML BRUT, sans exécuter le moindre
+     script : c'est ainsi que la lisent les outils de contrôle, et un chargeur
+     construit en JavaScript passerait pour absent. */
+  const html = await readFile(join(RACINE, PAGE_CIBLE), 'utf8');
+  const baliseStatique = html.match(
+    /<script[^>]+src="https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=(G-[A-Z0-9]+)"/,
+  );
+  ok(!!baliseStatique, 'la balise Google est une balise <script src>, lisible sans exécution');
+  const idGA4 = baliseStatique?.[1] ?? '';
   ok(/^G-[A-Z0-9]{8,12}$/.test(idGA4) && !idGA4.startsWith('G-X'), `identifiant GA4 réel dans la page (${idGA4})`);
+  ok(
+    new RegExp(`gtag\\('config', '${idGA4}'\\)`).test(html),
+    `la configuration porte le même identifiant (${idGA4})`,
+  );
   ok(versGA4.length > 0, `la balise part vers Google (${versGA4.length} requête(s))`);
   ok(
     versGA4.some((u) => u.includes(idGA4)),

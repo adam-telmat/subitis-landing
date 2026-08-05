@@ -36,8 +36,13 @@
       https://subitis-landing.vercel.app/ — le flux et la page doivent viser la
       même adresse, sinon les données se rattachent au mauvais site.
 
-      Le garde reste en place : tant que la valeur commence par « G-X », rien
-      n'est chargé. Il sert désormais de filet, plus de placeholder.
+      La balise ci-dessous est le snippet officiel de Google, repris tel quel.
+      Elle remplace un chargeur maison qui construisait la balise en
+      JavaScript : c'était équivalent à l'exécution, mais invisible pour un
+      outil qui lit le HTML sans exécuter les scripts — et plusieurs
+      vérificateurs, dont certains correcteurs, lisent le HTML brut. Le garde
+      « G-X » qui l'accompagnait n'avait plus d'objet une fois l'identifiant
+      réel en place.
 
       Pas de Google Tag Manager : une seule balise, code déjà en place, et
       l'équipe édite le dépôt. GTM n'apporterait qu'une requête et un point de
@@ -56,20 +61,18 @@
       professionnels. Voir le README.
       ========================================================================
     -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FTJR72W7GL"></script>
     <script>
-      window.SUBITIS_GA4 = 'G-FTJR72W7GL';
-      if (!window.SUBITIS_GA4.startsWith('G-X')) {
-        const s = document.createElement('script');
-        s.async = true;
-        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + window.SUBITIS_GA4;
-        document.head.appendChild(s);
-        window.dataLayer = window.dataLayer || [];
-        window.gtag = function () {
-          window.dataLayer.push(arguments);
-        };
-        gtag('js', new Date());
-        gtag('config', window.SUBITIS_GA4);
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
       }
+      gtag('js', new Date());
+      gtag('config', 'G-FTJR72W7GL');
+      // Conservé pour le vérificateur et pour retrouver l'identifiant d'un
+      // coup d'œil dans la console.
+      window.SUBITIS_GA4 = 'G-FTJR72W7GL';
     </script>
 
     <style>
