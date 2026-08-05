@@ -371,6 +371,12 @@ await page.evaluate(() => {
 });
 
 if (EST_INDEX) {
+  console.log('\n— Mesure d’audience');
+  await page.click('.hero .appel .bouton');
+  await page.waitForTimeout(300);
+  ok(evenements.includes('cta_hero'), `« cta_hero » part au clic sur l'appel du hero ${JSON.stringify(evenements)}`);
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+
   console.log('\n— Calculateur');
   await page.waitForTimeout(1100); // l'animation d'ouverture dure 900 ms
   ok((await page.locator('#calc-total').innerText()) === '540', 'valeur par défaut : 45 € × 3 × 4 = 540');
@@ -498,6 +504,7 @@ const remplir = async () => {
   await page.selectOption('#metier', { index: 1 });
   await page.fill('#zone', EST_INDEX ? 'Lyon 3e' : '13006');
   if (EST_INDEX) {
+    await page.check('input[name=se_deplace][value=oui]');
     await page.fill('#email', 'test@exemple.fr');
     await page.selectOption('#canal', { index: 1 });
   } else {
@@ -512,6 +519,10 @@ await page.click('#form-pro button[type=submit]');
 const alerte = await page.locator('#alerte-pro').innerText();
 ok(/inscriptions ne sont pas encore ouvertes/i.test(alerte), 'formulaire non branché : il avertit');
 ok(!(await page.locator('#succes-pro').isVisible()), "aucun faux message de succès");
+ok(
+  !evenements.includes('inscription_pro'),
+  `aucune inscription comptée sur un envoi qui n'est pas parti ${JSON.stringify(evenements)}`,
+);
 
 if (EST_INDEX) {
   /* Une adresse mal saisie est une demande perdue en silence : le même échec
@@ -600,17 +611,38 @@ await ctxReduit.close();
 /* -------------------------------------------------------------------------- */
 /*  8. Polices embarquées : aucune requête sortante                           */
 /* -------------------------------------------------------------------------- */
+/* La mesure d'audience émet forcément une requête vers Google : c'est son
+   travail. On ne relâche donc pas le contrôle, on le précise — GA4 est la
+   SEULE sortie tolérée, tout le reste reste interdit. Les polices, les images
+   et le logo doivent rester dans le fichier. */
 console.log('\n— Autonomie');
 const ctxReseau = await navigateur.newContext({ viewport: { width: 1280, height: 900 } });
 const sorties = [];
+const versGA4 = [];
 await ctxReseau.route('**/*', (route) => {
   const u = route.request().url();
-  if (!u.startsWith(URL_BASE)) sorties.push(u);
+  if (u.startsWith(URL_BASE)) return route.continue();
+  if (/googletagmanager\.com|google-analytics\.com|analytics\.google\.com/.test(u)) {
+    versGA4.push(u);
+    // On coupe l'appel : le contrôle vérifie qu'il part, pas qu'il aboutisse,
+    // et on ne pollue pas les rapports avec des visites de robot.
+    return route.abort();
+  }
+  sorties.push(u);
   return route.continue();
 });
 const pageReseau = await ctxReseau.newPage();
 await pageReseau.goto(URL_BASE, { waitUntil: 'networkidle' });
-ok(sorties.length === 0, `aucune requête vers l'extérieur ${JSON.stringify(sorties.slice(0, 3))}`);
+ok(sorties.length === 0, `aucune requête hors mesure d'audience ${JSON.stringify(sorties.slice(0, 3))}`);
+if (EST_INDEX) {
+  const idGA4 = await pageReseau.evaluate(() => window.SUBITIS_GA4);
+  ok(/^G-[A-Z0-9]{8,12}$/.test(idGA4) && !idGA4.startsWith('G-X'), `identifiant GA4 réel dans la page (${idGA4})`);
+  ok(versGA4.length > 0, `la balise part vers Google (${versGA4.length} requête(s))`);
+  ok(
+    versGA4.some((u) => u.includes(idGA4)),
+    `la requête porte bien l'identifiant ${idGA4}`,
+  );
+}
 const police = await pageReseau.evaluate(() =>
   getComputedStyle(document.querySelector('h1')).fontFamily.includes('Fraunces'),
 );
