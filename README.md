@@ -26,7 +26,30 @@ Seule `marseille.html` a besoin du dossier `photos/` ; `index.html` n'a **aucune
 Le fichier est complet, sauf deux valeurs que je ne peux pas inventer. Elles sont marquées dans
 le code, et **la page refuse de mentir tant qu'elles manquent**.
 
-### 1. L'identifiant Google Analytics 4
+### 1. Google Analytics 4 — fait
+
+`G-FTJR72W7GL`, propriété « Subitis », flux « Landing Subitis » pointant sur
+`https://subitis-landing.vercel.app/`. Le flux et la page doivent viser la même adresse, sinon
+les données se rattachent au mauvais site.
+
+Pas de Google Tag Manager : une seule balise, le code est déjà en place, et c'est l'équipe qui
+édite le dépôt. GTM n'ajouterait qu'une requête et un point de panne.
+
+| Événement | Déclenché quand | Paramètres |
+| --- | --- | --- |
+| `cta_hero` | clic sur l'appel à l'action du hero | — |
+| `inscription_pro` | soumission **réussie** du formulaire | `metier`, `zone`, `se_deplace`, `canal_prefere` |
+| `calcul_manque_a_gagner` | le calculateur est manipulé, une fois par visite | `prix_moyen`, `creneaux_vides`, `total_mensuel` |
+
+`inscription_pro` part **après** la réponse du serveur, jamais au clic : compter les intentions
+comme des inscriptions gonflerait le taux de conversion, et c'est précisément l'écart entre
+`cta_hero` et `inscription_pro` qui dit si le blocage vient de la page ou du formulaire.
+
+> **Le quatrième événement du brief, `recherche_cliente`, n'existe pas ici.** Il s'attache au
+> bloc « vous cherchez une prestation à domicile ? », qui vit sur `marseille.html` : la page
+> généraliste ne s'adresse qu'aux professionnels. Voir « Ce que le brief J3 suppose » plus bas.
+
+### 1 bis. L'ancien mode d'emploi de l'identifiant
 
 Dans le `<head>`, remplacer `G-XXXXXXXXXX` par l'identifiant réel.
 
@@ -78,8 +101,51 @@ développeur s'afficherait à un professionnel qui vient de remplir sept champs.
 5. **Envoyer une vraie demande de test et vérifier qu'elle arrive.** Une adresse mal collée
    ne se voit pas autrement.
 
-Les champs partent tels quels : `prenom`, `metier`, `zone`, `email`, `telephone`,
-`instagram`, `tiktok`, `facebook`, `canal`, plus `source` qui vaut `landing-essai`.
+La charge envoyée, aux noms de clés attendus par l'automatisation :
+
+```json
+{
+  "prenom": "Karim",       "metier": "Barbier",
+  "zone": "Marseille 3e",  "email": "karim@exemple.fr",
+  "telephone": "0612345678",
+  "instagram": "@karim.barber", "tiktok": "", "facebook": "",
+  "canal_prefere": "Instagram",
+  "se_deplace": true,
+  "source": "landing",
+  "horodatage": "2026-08-05T09:41:12.000Z"
+}
+```
+
+**`se_deplace` est un booléen, pas la chaîne « oui ».** Une chaîne non vide est toujours vraie :
+le routeur n'aiguillerait jamais vers la branche « hors cible », et le filtrage — la seule
+étape qui donne sa valeur à l'automatisation — ne servirait à rien.
+
+Deux garde-fous déjà en place, à ne pas retirer : le bouton se désactive pendant l'envoi et ne
+se réactive **qu'en cas d'échec**, donc un double clic ne peut pas créer deux contacts ; et
+aucun message de confirmation n'est affiché tant que le serveur n'a pas répondu favorablement.
+
+## Ce que le brief J3 suppose, et qui n'est plus vrai
+
+Le brief technique du J3 décrit la page telle qu'elle était au J2 : une place de marché pour
+les professionnels **qui se déplacent**, à Marseille, hébergée sur GitHub Pages. Trois écarts
+en découlent, à connaître avant de cocher la recette :
+
+| Le brief suppose | La page aujourd'hui |
+| --- | --- |
+| GitHub Pages, `adam-telmat.github.io` | Vercel, `subitis-landing.vercel.app` |
+| Un bloc « vous cherchez une prestation ? » côté clientes | La page ne s'adresse qu'aux professionnels ; ce bloc est resté sur `marseille.html` |
+| Le message « ouvrir vos premiers créneaux » | « ouvrir votre accès d'essai » — la page vend un abonnement, pas un pilote |
+
+**Conséquence sur l'événement `recherche_cliente`.** Le brief le désigne comme le plus
+important des trois : c'est le seul instrument qui mesure la demande côté clientes, donc le
+doute qui peut arrêter le projet. Il ne peut pas être posé sur cette page sans y ramener un
+bloc destiné aux clientes, ce qui brouillerait un discours entièrement construit pour les
+professionnels. Deux issues possibles, à trancher :
+
+1. **Le poser sur `marseille.html`**, où le bloc existe déjà, et publier cette page en parallèle
+   sur une seconde adresse.
+2. **Ramener un bloc court côté clientes** en bas de la page généraliste, assumé comme une
+   mesure de la demande et non comme une offre.
 
 ### À valider aussi avant publication
 
