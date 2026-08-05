@@ -504,7 +504,6 @@ const remplir = async () => {
   await page.selectOption('#metier', { index: 1 });
   await page.fill('#zone', EST_INDEX ? 'Lyon 3e' : '13006');
   if (EST_INDEX) {
-    await page.check('input[name=se_deplace][value=oui]');
     await page.fill('#email', 'test@exemple.fr');
     await page.selectOption('#canal', { index: 1 });
   } else {

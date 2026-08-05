@@ -51,8 +51,7 @@
       Trois événements sont émis par la page :
         cta_hero                — clic sur l'appel à l'action principal du hero
         inscription_pro         — soumission RÉUSSIE du formulaire, avec ses
-                                  paramètres : metier, zone, se_deplace,
-                                  canal_prefere
+                                  paramètres : metier, zone, canal_prefere
         calcul_manque_a_gagner  — le calculateur a été manipulé (une fois par visite)
 
       Le quatrième événement du brief, `recherche_cliente`, mesure la demande
@@ -1740,48 +1739,6 @@
       /* Les trois réseaux tiennent sur une ligne même à 320 px : empilés, ils
          ajoutaient trois écrans de défilement à un formulaire déjà long, et
          un formulaire long se remplit moins. */
-      /* Le choix Oui / Non : deux cibles pleines plutôt que deux petits ronds.
-         Au pouce, un bouton radio nu fait 18 px. */
-      .duo {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.6rem;
-      }
-      .duo > * {
-        min-width: 0;
-      }
-      .duo label {
-        border: 1px solid var(--line);
-        border-radius: var(--block);
-        background: var(--surface);
-        padding: 0.8rem 1rem;
-        min-height: 48px;
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        cursor: pointer;
-        font-size: 0.9375rem;
-        font-weight: 500;
-        color: var(--ink-700);
-        transition:
-          background-color var(--vite) var(--ease),
-          border-color var(--vite) var(--ease),
-          color var(--vite) var(--ease);
-      }
-      .duo input {
-        accent-color: var(--rose-600);
-        width: 18px;
-        height: 18px;
-        flex: none;
-      }
-      /* `:has()` n'existe que depuis Safari 15.4. Une classe posée en JS double
-         la règle : sur un iPhone plus ancien, le choix reste visiblement fait. */
-      .duo label:has(input:checked),
-      .duo label.choisie {
-        background: var(--ink-900);
-        border-color: var(--ink-900);
-        color: var(--canvas);
-      }
       .reseaux {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -3167,17 +3124,6 @@
                   <input id="zone" name="zone" type="text" required />
                 </div>
 
-                <!-- La question qui qualifie l'ICP. Elle n'exclut personne de
-                     la page : un salon répond « non » et reste le bienvenu.
-                     Elle sert au tri côté CRM, où elle aiguille la relance. -->
-                <div class="champ">
-                  <span class="legende" id="lbl-dep">Vous déplacez-vous chez vos clients&nbsp;?</span>
-                  <div class="duo" role="radiogroup" aria-labelledby="lbl-dep">
-                    <label><input type="radio" name="se_deplace" value="oui" required /> Oui</label>
-                    <label><input type="radio" name="se_deplace" value="non" /> Non</label>
-                  </div>
-                </div>
-
                 <div class="champ">
                   <label for="email">Email</label>
                   <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="vous@exemple.fr" required />
@@ -3612,9 +3558,10 @@
           bouton.setAttribute('aria-busy', 'true');
 
           /* La charge, aux noms de clés attendus côté automatisation.
-             `se_deplace` est un BOOLÉEN, pas la chaîne « oui » : c'est dessus
-             que le routeur décide d'envoyer une relance ou de classer hors
-             cible. Une chaîne y serait toujours vraie. */
+             `se_deplace` n'y figure plus : la question a été retirée du
+             formulaire, et envoyer une valeur par défaut classerait tout le
+             monde du même côté du routeur. Mieux vaut l'absence qu'une
+             réponse inventée. */
           const charge = {
             prenom: donnees.prenom,
             metier: donnees.metier,
@@ -3625,7 +3572,6 @@
             tiktok: donnees.tiktok || '',
             facebook: donnees.facebook || '',
             canal_prefere: donnees.canal,
-            se_deplace: donnees.se_deplace === 'oui',
             source,
             horodatage: new Date().toISOString(),
           };
@@ -3645,7 +3591,6 @@
             evenement(nomEvenement, {
               metier: charge.metier,
               zone: charge.zone,
-              se_deplace: charge.se_deplace,
               canal_prefere: charge.canal_prefere,
             });
           } catch {
@@ -3664,7 +3609,7 @@
         form: 'form-pro',
         alerte: 'alerte-pro',
         succes: 'succes-pro',
-        obligatoires: ['prenom', 'metier', 'se_deplace', 'zone', 'email', 'canal'],
+        obligatoires: ['prenom', 'metier', 'zone', 'email', 'canal'],
         nomEvenement: 'inscription_pro',
         source: 'landing',
       });
@@ -3677,15 +3622,6 @@
         if (appel) appel.addEventListener('click', () => evenement('cta_hero'));
       })();
 
-      /* Le choix Oui / Non reste visiblement fait, même sans `:has()`. */
-      document.querySelectorAll('.duo').forEach((groupe) => {
-        const majuscule = () =>
-          groupe
-            .querySelectorAll('label')
-            .forEach((l) => l.classList.toggle('choisie', l.querySelector('input').checked));
-        groupe.addEventListener('change', majuscule);
-        majuscule();
-      });
 
       /* Avant impression : tout est rendu visible, sinon des blocs jamais
          atteints au défilement sortent vides sur le PDF. */

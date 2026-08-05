@@ -38,7 +38,7 @@ Pas de Google Tag Manager : une seule balise, le code est déjà en place, et c'
 | Événement | Déclenché quand | Paramètres |
 | --- | --- | --- |
 | `cta_hero` | clic sur l'appel à l'action du hero | — |
-| `inscription_pro` | soumission **réussie** du formulaire | `metier`, `zone`, `se_deplace`, `canal_prefere` |
+| `inscription_pro` | soumission **réussie** du formulaire | `metier`, `zone`, `canal_prefere` |
 | `calcul_manque_a_gagner` | le calculateur est manipulé, une fois par visite | `prix_moyen`, `creneaux_vides`, `total_mensuel` |
 
 `inscription_pro` part **après** la réponse du serveur, jamais au clic : compter les intentions
@@ -110,15 +110,20 @@ La charge envoyée, aux noms de clés attendus par l'automatisation :
   "telephone": "0612345678",
   "instagram": "@karim.barber", "tiktok": "", "facebook": "",
   "canal_prefere": "Instagram",
-  "se_deplace": true,
   "source": "landing",
   "horodatage": "2026-08-05T09:41:12.000Z"
 }
 ```
 
-**`se_deplace` est un booléen, pas la chaîne « oui ».** Une chaîne non vide est toujours vraie :
-le routeur n'aiguillerait jamais vers la branche « hors cible », et le filtrage — la seule
-étape qui donne sa valeur à l'automatisation — ne servirait à rien.
+> [!WARNING]
+> **`se_deplace` a été retiré du formulaire, à la demande du fondateur.** Le brief J3 en
+> faisait son « chantier 0 » : c'était le critère de qualification de l'ICP, et surtout la
+> **branche du routeur Make**. Sans lui, l'automatisation transporte au lieu de trier, et le
+> critère de recette « le champ part dans la charge en booléen » ne peut plus être coché.
+>
+> Aucune valeur par défaut n'est envoyée à sa place : classer tout le monde du même côté du
+> routeur serait pire que l'absence. Si le tri redevient nécessaire, le champ se remet en
+> quelques minutes — voir le commit qui l'a retiré.
 
 Deux garde-fous déjà en place, à ne pas retirer : le bouton se désactive pendant l'envoi et ne
 se réactive **qu'en cas d'échec**, donc un double clic ne peut pas créer deux contacts ; et
