@@ -3188,8 +3188,11 @@
               </form>
 
               <div id="succes-pro" class="succes" role="status" aria-live="polite">
-                <h3>C'est noté.</h3>
-                <p>On revient vers vous sous 24&nbsp;h pour ouvrir votre accès d'essai et configurer votre page avec vous.</p>
+                <h3>C'est noté, votre inscription est enregistrée.</h3>
+                <p>
+                  On revient vers vous sous 24&nbsp;h pour ouvrir votre accès d'essai et
+                  configurer votre page avec vous. Vous n'avez rien à préparer.
+                </p>
               </div>
             </div>
           </div>
@@ -3288,10 +3291,9 @@
          au visiteur au lieu d'afficher un « merci » mensonger. Une inscription
          perdue sans que personne ne le sache est pire que pas de formulaire.
 
-         Une fois renseignée : pousser, attendre le redéploiement, puis envoyer
-         une vraie inscription de test et vérifier qu'elle arrive.
+         Branchée le 5 août 2026 sur le scénario « Formulaire Subitis ».
          ==================================================================== */
-      const ENDPOINT = '';
+      const ENDPOINT = 'https://hook.eu2.make.com/dmqnuh38ssky1x4aupujef7izbldx1lq';
 
       const reduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
       const evenement = (nom, params) => {

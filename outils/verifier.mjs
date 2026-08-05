@@ -99,8 +99,14 @@ const ctx = await navigateur.newContext({
 });
 const page = await ctx.newPage();
 const erreursConsole = [];
-page.on('console', (m) => m.type() === 'error' && erreursConsole.push(m.text()));
-page.on('pageerror', (e) => erreursConsole.push(String(e)));
+/* La recette provoque volontairement une panne du webhook pour vérifier que
+   la page la signale. Le navigateur journalise alors un 500 qui n'est pas un
+   défaut de la page mais du décor de test : on cesse de collecter pendant ce
+   passage précis, plutôt que de filtrer les 500 partout — ce qui masquerait
+   de vraies pannes. */
+let collecterConsole = true;
+page.on('console', (m) => m.type() === 'error' && collecterConsole && erreursConsole.push(m.text()));
+page.on('pageerror', (e) => collecterConsole && erreursConsole.push(String(e)));
 await page.goto(URL_BASE, { waitUntil: 'load' });
 await page.evaluate(() => document.fonts.ready);
 
@@ -363,10 +369,14 @@ if (EST_INDEX) {
 /*  5. Le cœur interactif de la page                                          */
 /* -------------------------------------------------------------------------- */
 const evenements = [];
-await page.exposeFunction('__ev', (n) => evenements.push(n));
+const evenementsDetail = [];
+await page.exposeFunction('__ev', (n, params) => {
+  evenements.push(n);
+  evenementsDetail.push({ nom: n, params });
+});
 await page.evaluate(() => {
-  window.gtag = (type, nom) => {
-    if (type === 'event') window.__ev(nom);
+  window.gtag = (type, nom, params) => {
+    if (type === 'event') window.__ev(nom, params);
   };
 });
 
@@ -512,16 +522,63 @@ const remplir = async () => {
   }
 };
 
-await page.waitForTimeout(1600);
-await remplir();
-await page.click('#form-pro button[type=submit]');
-const alerte = await page.locator('#alerte-pro').innerText();
-ok(/inscriptions ne sont pas encore ouvertes/i.test(alerte), 'formulaire non branché : il avertit');
-ok(!(await page.locator('#succes-pro').isVisible()), "aucun faux message de succès");
-ok(
-  !evenements.includes('inscription_pro'),
-  `aucune inscription comptée sur un envoi qui n'est pas parti ${JSON.stringify(evenements)}`,
-);
+if (EST_INDEX) {
+  /* Le webhook est branché : on n'envoie donc RIEN chez le client. On
+     intercepte l'appel et on joue les deux issues. Une recette qui écrirait
+     dans le CRM à chaque exécution deviendrait une recette qu'on n'ose plus
+     lancer. */
+  let envois = 0;
+  let reponse = { status: 500 };
+  await page.route('https://hook.eu2.make.com/**', (route) => {
+    envois += 1;
+    return route.fulfill({ status: reponse.status, body: 'Accepted' });
+  });
+
+  // --- La panne : c'est la règle qui prime sur toutes les autres ---
+  collecterConsole = false;
+  await page.waitForTimeout(1600);
+  await remplir();
+  await page.click('#form-pro button[type=submit]');
+  await page.waitForTimeout(900);
+  const alerte = await page.locator('#alerte-pro').innerText();
+  ok(/n’a pas abouti|n'a pas abouti/i.test(alerte), `envoi en échec : la page le dit (« ${alerte.slice(0, 40)}… »)`);
+  ok(!(await page.locator('#succes-pro').isVisible()), 'aucune confirmation sur un envoi perdu');
+  ok(!evenements.includes('inscription_pro'), `aucune inscription comptée sur un échec ${JSON.stringify(evenements)}`);
+  ok(
+    await page.locator('#form-pro button[type=submit]').isEnabled(),
+    'le bouton se réactive après un échec, pour permettre un nouvel essai',
+  );
+
+  // --- Le double clic ne doit produire qu'un seul envoi ---
+  reponse = { status: 200 };
+  collecterConsole = true;
+  const avant = envois;
+  await page.click('#form-pro button[type=submit]');
+  await page.click('#form-pro button[type=submit]', { force: true }).catch(() => {});
+  await page.waitForTimeout(1200);
+  ok(envois - avant === 1, `un double clic ne produit qu'un seul envoi (${envois - avant})`);
+
+  // --- La réussite : confirmation, formulaire masqué, événement complet ---
+  ok(await page.locator('#succes-pro').isVisible(), 'envoi réussi : la confirmation apparaît');
+  const confirmation = await page.locator('#succes-pro').innerText();
+  ok(/inscription/i.test(confirmation), `elle parle bien d'inscription (« ${confirmation.slice(0, 46)}… »)`);
+  ok(!(await page.locator('#form-pro').isVisible()), 'le formulaire disparaît, on ne peut pas renvoyer par mégarde');
+
+  const inscription = evenementsDetail.find((e) => e.nom === 'inscription_pro');
+  ok(!!inscription, `« inscription_pro » est émis après la réussite ${JSON.stringify(evenements)}`);
+  ok(
+    inscription && ['metier', 'zone', 'canal_prefere'].every((c) => c in (inscription.params || {})),
+    `avec ses paramètres ${JSON.stringify(inscription?.params ?? null)}`,
+  );
+
+  await page.unroute('https://hook.eu2.make.com/**');
+  await page.reload({ waitUntil: 'load' });
+  await page.evaluate(() => {
+    window.gtag = (type, nom, params) => {
+      if (type === 'event') window.__ev(nom, params);
+    };
+  });
+}
 
 if (EST_INDEX) {
   /* Une adresse mal saisie est une demande perdue en silence : le même échec
@@ -536,17 +593,21 @@ if (EST_INDEX) {
   ok(/adresse email ne semble pas valide/i.test(alerteEmail), `email invalide : il le dit (« ${alerteEmail.slice(0, 42)}… »)`);
   ok(await page.locator('#email').evaluate((e) => e === document.activeElement), 'email invalide : le focus revient sur le champ');
 
-  /* Les champs facultatifs le sont vraiment : sans eux, l'envoi doit passer
-     la validation et n'échouer que sur le garde ENDPOINT. */
+  /* Les champs facultatifs le sont vraiment. La preuve n'est pas un message
+     à l'écran mais le DÉPART de la requête : si la validation bloquait, rien
+     ne partirait. On intercepte pour ne pas écrire chez le client. */
   await page.reload({ waitUntil: 'load' });
+  let partiSansOptionnels = false;
+  await page.route('https://hook.eu2.make.com/**', (route) => {
+    partiSansOptionnels = true;
+    return route.fulfill({ status: 200, body: 'Accepted' });
+  });
   await page.waitForTimeout(1600);
   await remplir();
   await page.click('#form-pro button[type=submit]');
-  const sansOptionnels = await page.locator('#alerte-pro').innerText();
-  ok(
-    /inscriptions ne sont pas encore ouvertes/i.test(sansOptionnels),
-    'téléphone et réseaux sont bien facultatifs : la validation passe sans eux',
-  );
+  await page.waitForTimeout(900);
+  ok(partiSansOptionnels, 'téléphone et réseaux sont bien facultatifs : la validation passe sans eux');
+  await page.unroute('https://hook.eu2.make.com/**');
 }
 
 /* champ manquant → focus sur le champ fautif */
