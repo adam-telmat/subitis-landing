@@ -83,23 +83,40 @@ const ENDPOINT = '';
 | Formspree | `https://formspree.io/f/<identifiant>` | Deux minutes à mettre en place |
 | Tally | `https://tally.so/r/<identifiant>` | Idem |
 
-**Tant que `ENDPOINT` est vide, rien n'est envoyé et la page le dit.** Une demande d'essai
-perdue sans que personne ne le sache est pire que pas de formulaire.
+**Branché le 5 août 2026** sur le scénario Make « Formulaire Subitis ».
+
+### Le filet : aucune inscription perdue pendant une panne
+
+Le webhook peut être coupé — il l'était encore ce matin (`410 There is no scenario listening`),
+et il le sera à chaque maintenance. Une inscription qui n'a pas pu partir est donc **gardée sur
+l'appareil du visiteur** et rejouée à sa prochaine visite, en silence : il a déjà été prévenu
+de l'échec, le reprendre à partie n'apporterait rien.
+
+Les garde-fous : rien ne transite ailleurs que vers le webhook, rien n'est gardé plus de
+**sept jours**, et **cinq entrées au maximum** — passé ce point ce n'est plus une panne
+passagère, et le stock n'aiderait personne. Si le stockage est indisponible (navigation privée,
+espace saturé), l'envoi se poursuit sans filet plutôt que d'échouer.
+
+Ce mécanisme est éprouvé par quatre contrôles : l'inscription est gardée, ses données sont
+intactes, elle repart seule au rechargement, et la file se vide une fois transmise.
+
+**Si `ENDPOINT` redevient vide, rien n'est envoyé et la page le dit.** Une inscription perdue
+sans que personne ne le sache est pire que pas de formulaire.
 
 Deux messages, deux publics : le visiteur lit « les inscriptions ne sont pas encore
 ouvertes », phrase qui lui parle et qui ne l'accuse de rien ; la consigne technique part dans
 la console du navigateur, là où on la cherche. Sur un site en ligne, un message destiné au
 développeur s'afficherait à un professionnel qui vient de remplir sept champs.
 
-### Le chemin le plus court, quand le moment sera venu
+### Ce qu'il reste à faire côté Make
 
-1. Créer un compte sur [formspree.io](https://formspree.io) (gratuit jusqu'à 50 demandes par
-   mois, une adresse email suffit).
-2. « New Form », copier l'adresse fournie — elle ressemble à `https://formspree.io/f/abcdxyz`.
-3. La coller entre les guillemets de `const ENDPOINT = '';`, en bas de `index.html`.
-4. `git push` : le redéploiement est automatique.
-5. **Envoyer une vraie demande de test et vérifier qu'elle arrive.** Une adresse mal collée
-   ne se voit pas autrement.
+Au 5 août, le scénario **n'écoute pas** : le webhook répond `410 There is no scenario listening
+for this webhook`, vérifié depuis la page publiée et par un appel direct. La page se comporte
+correctement — message d'erreur, aucune confirmation, inscription mise en file — mais rien
+n'arrive dans le CRM.
+
+Pour le débloquer, dans le scénario « Formulaire Subitis » : **« Run once »** pour capter un
+seul appel de test, ou l'interrupteur **ON** pour écouter en permanence.
 
 La charge envoyée, aux noms de clés attendus par l'automatisation :
 

@@ -3495,6 +3495,72 @@
         ).observe(essai);
       })();
 
+      /* ====================== LA FILE D'ATTENTE ======================
+         Le webhook peut être coupé — il l'était encore ce matin, et il le
+         sera à chaque maintenance. Sans filet, l'inscription est perdue et
+         personne ne l'apprend : exactement ce que la page refuse de faire.
+
+         Une inscription qui n'a pas pu partir est donc gardée SUR L'APPAREIL
+         du visiteur, et rejouée à sa prochaine visite. Aucune donnée ne
+         transite ailleurs, rien n'est gardé plus de sept jours, et cinq
+         entrées au maximum : passé ce point, ce n'est plus une panne
+         passagère et le stock n'aiderait personne.
+         ============================================================== */
+      const FILE_ATTENTE = 'subitis.inscriptions.en-attente';
+
+      const lireFile = () => {
+        try {
+          const brut = JSON.parse(localStorage.getItem(FILE_ATTENTE) || '[]');
+          return Array.isArray(brut) ? brut : [];
+        } catch {
+          return [];
+        }
+      };
+      const ecrireFile = (entrees) => {
+        try {
+          if (entrees.length) localStorage.setItem(FILE_ATTENTE, JSON.stringify(entrees.slice(-5)));
+          else localStorage.removeItem(FILE_ATTENTE);
+        } catch {
+          /* Navigation privée ou stockage plein : on continue sans filet
+             plutôt que de casser l'envoi en cours. */
+        }
+      };
+
+      const transmettre = async (charge) => {
+        const reponse = await fetch(ENDPOINT, {
+          method: 'POST',
+          headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+          body: JSON.stringify(charge),
+        });
+        if (!reponse.ok) throw new Error(String(reponse.status));
+      };
+
+      /* Au chargement, on rejoue ce qui attend. En silence : le visiteur a
+         déjà été prévenu que l'envoi avait échoué, le reprendre à parti est
+         inutile. Ce qui compte, c'est que l'inscription arrive. */
+      (async () => {
+        if (!ENDPOINT) return;
+        const file = lireFile();
+        if (!file.length) return;
+        const restants = [];
+        for (const charge of file) {
+          const age = Date.now() - Date.parse(charge.horodatage || 0);
+          if (!(age >= 0) || age > 7 * 864e5) continue;
+          try {
+            await transmettre(charge);
+            evenement('inscription_pro', {
+              metier: charge.metier,
+              zone: charge.zone,
+              canal_prefere: charge.canal_prefere,
+              rejouee: true,
+            });
+          } catch {
+            restants.push(charge);
+          }
+        }
+        ecrireFile(restants);
+      })();
+
       /* ------------------------ Envoi du formulaire ------------------------ */
       const ouvertureA = Date.now();
 
@@ -3579,12 +3645,7 @@
           };
 
           try {
-            const reponse = await fetch(ENDPOINT, {
-              method: 'POST',
-              headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-              body: JSON.stringify(charge),
-            });
-            if (!reponse.ok) throw new Error(String(reponse.status));
+            await transmettre(charge);
             element.style.display = 'none';
             boiteSucces.style.display = 'block';
             boiteSucces.scrollIntoView({ behavior: reduit ? 'auto' : 'smooth', block: 'center' });
@@ -3600,8 +3661,9 @@
                cours ou réussi, un second clic ne peut pas créer un doublon. */
             bouton.disabled = false;
             bouton.removeAttribute('aria-busy');
+            ecrireFile([...lireFile(), charge]);
             erreur(
-              'L’envoi n’a pas abouti. Réessayez dans un instant, ou écrivez-nous directement par message privé sur Instagram.',
+              'L’envoi n’a pas abouti. Votre inscription est gardée sur cet appareil et repartira toute seule à votre prochaine visite. Vous pouvez aussi réessayer maintenant.',
             );
           }
         });

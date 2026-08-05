@@ -549,6 +549,39 @@ if (EST_INDEX) {
     'le bouton se réactive après un échec, pour permettre un nouvel essai',
   );
 
+  /* Le filet : une inscription qui n'a pas pu partir doit être gardée, puis
+     rejouée à la visite suivante. Sans ce contrôle, la panne du webhook se
+     traduirait par des inscriptions perdues sans que personne ne l'apprenne. */
+  const enAttente = await page.evaluate(() => JSON.parse(localStorage.getItem('subitis.inscriptions.en-attente') || '[]'));
+  ok(enAttente.length === 1, `l'inscription en échec est gardée sur l'appareil (${enAttente.length})`);
+  ok(enAttente[0]?.email === 'test@exemple.fr', `avec ses données intactes (${enAttente[0]?.email})`);
+
+  collecterConsole = true;
+  let rejoue = 0;
+  await page.route('https://hook.eu2.make.com/**', (route) => {
+    rejoue += 1;
+    return route.fulfill({ status: 200, body: 'Accepted' });
+  });
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForTimeout(1500);
+  ok(rejoue === 1, `elle repart toute seule à la visite suivante (${rejoue} renvoi)`);
+  const apresRejeu = await page.evaluate(() => localStorage.getItem('subitis.inscriptions.en-attente'));
+  ok(apresRejeu === null, 'et la file se vide une fois transmise');
+
+  await page.evaluate(() => localStorage.removeItem('subitis.inscriptions.en-attente'));
+  await page.unroute('https://hook.eu2.make.com/**');
+  await page.route('https://hook.eu2.make.com/**', (route) => {
+    envois += 1;
+    return route.fulfill({ status: reponse.status, body: 'Accepted' });
+  });
+  await page.evaluate(() => {
+    window.gtag = (type, nom, params) => {
+      if (type === 'event') window.__ev(nom, params);
+    };
+  });
+  await page.waitForTimeout(1600);
+  await remplir();
+
   // --- Le double clic ne doit produire qu'un seul envoi ---
   reponse = { status: 200 };
   collecterConsole = true;
